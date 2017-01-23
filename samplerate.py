@@ -1,8 +1,6 @@
 """ Python bindings for libsamplerate based on CFFI and NumPy.
 """
 from __future__ import print_function, division
-__version__ = '0.0.1'
-
 import os
 import sys
 from ctypes.util import find_library
@@ -10,6 +8,8 @@ from ctypes.util import find_library
 import numpy as np
 
 from _samplerate import ffi
+
+__version__ = '0.0.1'
 
 # pylint: disable=invalid-name
 _lib_basename = 'libsamplerate'
@@ -47,17 +47,22 @@ def _check_data(data):
         raise ValueError('rank > 2 not supported')
     return num_frames, channels
 
+
 def _src_strerror(error):
     return ffi.string(lib.src_strerror(error)).decode()
+
 
 def _src_get_name(converter_type):
     return ffi.string(lib.src_get_name(converter_type)).decode()
 
+
 def _src_get_description(converter_type):
     return ffi.string(lib.src_get_description(converter_type)).decode()
 
+
 def _src_get_version():
     return ffi.string(lib.src_get_version()).decode()
+
 
 def _src_simple(input_data, output_data, ratio, converter_type, channels):
     input_frames, _ = _check_data(input_data)
@@ -71,13 +76,16 @@ def _src_simple(input_data, output_data, ratio, converter_type, channels):
     error = lib.src_simple(data, converter_type, channels)
     return error, data.input_frames_used, data.output_frames_gen
 
+
 def _src_new(converter_type, channels):
     error = ffi.new('int*')
     state = lib.src_new(converter_type, channels, error)
     return state, error[0]
 
+
 def _src_delete(state):
     lib.src_delete(state)
+
 
 def _src_process(state, input_data, output_data, ratio, end_of_input=0):
     input_frames, _ = _check_data(input_data)
@@ -92,17 +100,22 @@ def _src_process(state, input_data, output_data, ratio, end_of_input=0):
     error = lib.src_process(state, data)
     return error, data.input_frames_used, data.output_frames_gen
 
+
 def _src_error(state):
     return lib.src_error(state) if state else None
+
 
 def _src_reset(state):
     return lib.src_reset(state) if state else None
 
+
 def _src_set_ratio(state, new_ratio):
     return lib.src_set_ratio(state, new_ratio) if state else None
 
+
 def _src_is_valid_ratio(ratio):
     return bool(lib.src_is_valid_ratio(ratio))
+
 
 @ffi.callback('src_callback_t')
 def _src_input_callback(cb_data, data):
@@ -125,6 +138,7 @@ def _src_input_callback(cb_data, data):
     data[0] = ffi.cast('float*', ffi.from_buffer(input_data))
     return input_frames
 
+
 def _src_callback_new(callback, converter_type, channels):
     cb_data = {'callback': callback, 'channels': channels, 'last_input': None}
     handle = ffi.new_handle(cb_data)
@@ -135,6 +149,7 @@ def _src_callback_new(callback, converter_type, channels):
         return None, handle, error[0]
     return state, handle, error[0]
 
+
 def _src_callback_read(state, ratio, frames, data):
     data_ptr = ffi.cast('float*', ffi.from_buffer(data))
     return lib.src_callback_read(state, ratio, frames, data_ptr)
@@ -143,11 +158,12 @@ def _src_callback_read(state, ratio, frames, data):
 __libsamplerate_version__ = _src_get_version()
 if __libsamplerate_version__.startswith(_lib_basename):
     __libsamplerate_version__ = __libsamplerate_version__[
-        len(_lib_basename)+1:__libsamplerate_version__.find(' ')
+        len(_lib_basename) + 1:__libsamplerate_version__.find(' ')
     ]
 
 
 class SampleRateError(RuntimeError):
+
     def __init__(self, error):
         message = 'libsamplerate error #{}: {}'.format(
             error, _src_strerror(error)
@@ -228,8 +244,9 @@ class SampleRateConverter(object):
 
         (error,
          input_frames_used,
-         output_frames_gen) = _src_process(self._state, input_data, output_data,
-                                           ratio, end_of_input)
+         output_frames_gen) = _src_process(
+             self._state, input_data, output_data, ratio, end_of_input
+        )
 
         if error != 0:
             raise SampleRateError(error)
@@ -246,6 +263,7 @@ class SampleRateConverter(object):
 
 
 class CallbackResampler(object):
+
     def __init__(self, callback, ratio, converter_type, channels):
         if channels < 1:
             raise ValueError('Invalid number of channels.')
