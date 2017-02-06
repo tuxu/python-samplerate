@@ -1,7 +1,7 @@
 from cffi import FFI
 
 ffibuilder = FFI()
-ffibuilder.set_source('_samplerate', None)
+ffibuilder.set_source('samplerate._src', None)
 
 ffibuilder.cdef("""
     typedef struct SRC_STATE_tag SRC_STATE ;

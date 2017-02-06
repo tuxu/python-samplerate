@@ -1,6 +1,10 @@
 __pycache__/
 *.py[cod]
 
+*.egg-info
+dist/
+build/
+
 tags
 
-/_samplerate.py
+samplerate/_src.py

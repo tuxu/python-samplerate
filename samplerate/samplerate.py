@@ -7,9 +7,7 @@ from ctypes.util import find_library
 
 import numpy as np
 
-from _samplerate import ffi
-
-__version__ = '0.0.1'
+from ._src import ffi
 
 # pylint: disable=invalid-name
 _lib_basename = 'libsamplerate'
