@@ -140,7 +140,7 @@ def _src_input_callback(cb_data, data):
 
 
 def _src_callback_new(callback, converter_type, channels):
-    cb_data = {'callback': callback, 'channels': channels, 'last_input': None}
+    cb_data = {'callback': callback, 'channels': channels}
     handle = ffi.new_handle(cb_data)
     error = ffi.new('int*')
     state = lib.src_callback_new(_src_input_callback, converter_type,
