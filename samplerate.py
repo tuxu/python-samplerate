@@ -245,8 +245,7 @@ class SampleRateConverter(object):
         (error,
          input_frames_used,
          output_frames_gen) = _src_process(
-             self._state, input_data, output_data, ratio, end_of_input
-        )
+             self._state, input_data, output_data, ratio, end_of_input)
 
         if error != 0:
             raise SampleRateError(error)
