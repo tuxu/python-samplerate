@@ -1,10 +1,14 @@
 __pycache__/
 *.py[cod]
 
+.coverage
+.cache/
+.eggs/
 *.egg-info
 dist/
 build/
 
 tags
+.vscode/
 
 samplerate/_src.py
