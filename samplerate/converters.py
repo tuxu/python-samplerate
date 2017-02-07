@@ -2,7 +2,26 @@
 
 """
 from __future__ import print_function, division
+from enum import Enum
 import numpy as np
+
+
+#pylint disable: too-few-public-methods
+class ConverterType(Enum):
+    sinc_best = 0
+    sinc_medium = 1
+    sinc_fastest = 2
+    zero_order_hold = 3
+    linear = 4
+
+
+def _get_converter_type(identifier):
+    """Return the converter type for `identifier`."""
+    if isinstance(identifier, ConverterType):
+        return identifier
+    if isinstance(identifier, str):
+        return ConverterType[identifier]
+    return ConverterType(identifier)
 
 
 def resample(input_data, ratio, converter_type, verbose=False):
@@ -20,9 +39,11 @@ def resample(input_data, ratio, converter_type, verbose=False):
         raise ValueError('rank > 2 not supported')
 
     output_data = np.empty(output_shape, dtype=np.float32)
+    converter_type = _get_converter_type(converter_type)
 
     (error, input_frames_used, output_frames_gen) \
-        = src_simple(input_data, output_data, ratio, converter_type, channels)
+        = src_simple(input_data, output_data, ratio,
+                     converter_type.value, channels)
 
     if error != 0:
         raise SampleRateError(error)
@@ -44,7 +65,8 @@ class SampleRateConverter(object):
         from .lowlevel import ffi, src_new, src_delete
         from .exceptions import SampleRateError
 
-        state, error = src_new(converter_type, channels)
+        converter_type = _get_converter_type(converter_type)
+        state, error = src_new(converter_type.value, channels)
         self._state = ffi.gc(state, src_delete)
         self._converter_type = converter_type
         self._channels = channels
@@ -112,7 +134,7 @@ class CallbackResampler(object):
             raise ValueError('Invalid number of channels.')
         self._callback = callback
         self._ratio = ratio
-        self._converter_type = converter_type
+        self._converter_type = _get_converter_type(converter_type)
         self._channels = channels
         self._state = None
         self._handle = None
@@ -122,7 +144,7 @@ class CallbackResampler(object):
         from .exceptions import SampleRateError
 
         state, handle, error = src_callback_new(
-            self._callback, self._converter_type, self._channels
+            self._callback, self._converter_type.value, self._channels
         )
         if error != 0:
             raise SampleRateError(error)
