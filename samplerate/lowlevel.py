@@ -1,5 +1,7 @@
-""" Lowlevel wrappers around libsamplerate
+"""Lowlevel wrappers around libsamplerate.
 
+The docstrings of the `src_*` functions are adapted from the libsamplerate
+header file.
 """
 import os as _os
 import sys as _sys
@@ -28,7 +30,14 @@ if lib_filename is None:
 _lib = ffi.dlopen(lib_filename)
 
 def _check_data(data):
-    """Check whether `data` is a valid input/output for libsamplerate."""
+    """Check whether `data` is a valid input/output for libsamplerate.
+
+    Returns:
+        A tuple (num_frames, channels).
+
+    Raises:
+        ValueError: If invalid data is supplied.
+    """
     if not (data.dtype == _np.float32 and data.flags.c_contiguous):
         raise ValueError('supplied data must be float32 and C contiguous')
     if data.ndim == 2:
@@ -41,22 +50,32 @@ def _check_data(data):
 
 
 def src_strerror(error):
+    """Convert the error number into a string."""
     return ffi.string(_lib.src_strerror(error)).decode()
 
 
 def src_get_name(converter_type):
+    """Return the name of the converter given by `converter_type`."""
     return ffi.string(_lib.src_get_name(converter_type)).decode()
 
 
 def src_get_description(converter_type):
+    """Return the description of the converter given by `converter_type`."""
     return ffi.string(_lib.src_get_description(converter_type)).decode()
 
 
 def src_get_version():
+    """Return the version string of libsamplerate."""
     return ffi.string(_lib.src_get_version()).decode()
 
 
 def src_simple(input_data, output_data, ratio, converter_type, channels):
+    """Perform a single conversion from an input buffer to an output buffer.
+
+    Simple interface for performing a single conversion from input buffer to
+    output buffer at a fixed conversion ratio. Simple interface does not require
+    initialisation as it can only operate on a single buffer worth of audio.
+    """
     input_frames, _ = _check_data(input_data)
     output_frames, _ = _check_data(output_data)
     data = ffi.new('SRC_DATA*')
@@ -70,16 +89,36 @@ def src_simple(input_data, output_data, ratio, converter_type, channels):
 
 
 def src_new(converter_type, channels):
+    """Initialise a new sample rate converter.
+
+    Args:
+        converter_type (int): Converter to be used.
+        channels (int): Number of channels.
+
+    Returns:
+        A tuple (state, error).
+
+        state: An anonymous pointer to the internal state of the converter.
+        error: An error code.
+    """
     error = ffi.new('int*')
     state = _lib.src_new(converter_type, channels, error)
     return state, error[0]
 
 
 def src_delete(state):
+    """Release `state`.
+
+    Cleanup all internal allocations.
+    """
     _lib.src_delete(state)
 
 
 def src_process(state, input_data, output_data, ratio, end_of_input=0):
+    """Standard processing function.
+
+    Returns non zero on error.
+    """
     input_frames, _ = _check_data(input_data)
     output_frames, _ = _check_data(output_data)
     data = ffi.new('SRC_DATA*')
@@ -94,23 +133,47 @@ def src_process(state, input_data, output_data, ratio, end_of_input=0):
 
 
 def src_error(state):
+    """Return an error number."""
     return _lib.src_error(state) if state else None
 
 
 def src_reset(state):
+    """Reset the internal SRC state.
+
+    Does not modify the quality settings.
+    Does not free any memory allocations.
+    Returns non zero on error.
+    """
     return _lib.src_reset(state) if state else None
 
 
 def src_set_ratio(state, new_ratio):
+    """Set a new SRC ratio.
+
+    This allows step responses in the conversion ratio.
+    Returns non zero on error.
+    """
     return _lib.src_set_ratio(state, new_ratio) if state else None
 
 
 def src_is_valid_ratio(ratio):
+    """Return `True` if ratio is a valid conversion ratio, `False` otherwise.
+    """
     return bool(_lib.src_is_valid_ratio(ratio))
 
 
 @ffi.callback('src_callback_t')
-def src_input_callback(cb_data, data):
+def _src_input_callback(cb_data, data):
+    """Internal callback function to be used with the callback API.
+
+    Pulls the Python callback function from the handle contained in `cb_data`
+    and calls it to fetch frames. Frames are converted to the format required by
+    the API (float, interleaved channels). A reference to these data is kept
+    internally.
+
+    Returns:
+        int: The number of frames supplied.
+    """
     cb_data = ffi.from_handle(cb_data)
     ret = cb_data['callback']()
     if ret is None:
@@ -132,10 +195,26 @@ def src_input_callback(cb_data, data):
 
 
 def src_callback_new(callback, converter_type, channels):
+    """Initialisation for the callback based API.
+
+    Args:
+        callback (function): Called whenever new frames are to be read. Must
+            return a NumPy array of shape (num_frames, channels).
+        converter_type (int): Converter to be used.
+        channels (int): Number of channels.
+
+    Returns:
+        A tuple (state, handle, error).
+
+        state: An anonymous pointer to the internal state of the converter.
+        handle: A CFFI handle to the callback data.
+        error: An error code.
+
+    """
     cb_data = {'callback': callback, 'channels': channels}
     handle = ffi.new_handle(cb_data)
     error = ffi.new('int*')
-    state = _lib.src_callback_new(src_input_callback, converter_type,
+    state = _lib.src_callback_new(_src_input_callback, converter_type,
                                   channels, error, handle)
     if state == ffi.NULL:
         return None, handle, error[0]
@@ -143,7 +222,12 @@ def src_callback_new(callback, converter_type, channels):
 
 
 def src_callback_read(state, ratio, frames, data):
-    data_ptr = ffi.cast('float*', ffi.from_buffer(data))
+    """Read up to `frames` worth of data using the callback API.
+
+    Returns:
+        int: number of frames read or -1 on error.
+    """
+    data_ptr = ffi.cast('float*f', ffi.from_buffer(data))
     return _lib.src_callback_read(state, ratio, frames, data_ptr)
 
 
