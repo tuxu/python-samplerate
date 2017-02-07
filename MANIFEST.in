@@ -2,3 +2,5 @@ include README.rst
 include LICENSE.rst
 include versioneer.py
 include samplerate/_version.py
+include samplerate/_samplerate_data/*.dylib
+include samplerate/_samplerate_data/*.dll

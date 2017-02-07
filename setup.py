@@ -29,6 +29,7 @@ setup(
     platforms='any',
     license='MIT',
     packages=['samplerate'],
+    zip_safe=False,
     cffi_modules=['samplerate/samplerate_build.py:ffibuilder'],
     setup_requires=['cffi>=1.0.0', 'pytest-runner'],
     install_requires=['cffi>=1.0.0', 'numpy'],
