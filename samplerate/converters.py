@@ -26,7 +26,7 @@ def _get_converter_type(identifier):
 
 def resample(input_data, ratio, converter_type, verbose=False):
     from .lowlevel import src_simple
-    from .exceptions import SampleRateError
+    from .exceptions import ResamplingError
 
     input_data = np.require(input_data, requirements='C', dtype=np.float32)
     if input_data.ndim == 2:
@@ -46,7 +46,7 @@ def resample(input_data, ratio, converter_type, verbose=False):
                      converter_type.value, channels)
 
     if error != 0:
-        raise SampleRateError(error)
+        raise ResamplingError(error)
 
     if verbose:
         info = ('samplerate info:\n'
@@ -59,11 +59,11 @@ def resample(input_data, ratio, converter_type, verbose=False):
             output_data[:output_frames_gen])
 
 
-class SampleRateConverter(object):
+class Resampler(object):
 
     def __init__(self, converter_type, channels):
         from .lowlevel import ffi, src_new, src_delete
-        from .exceptions import SampleRateError
+        from .exceptions import ResamplingError
 
         converter_type = _get_converter_type(converter_type)
         state, error = src_new(converter_type.value, channels)
@@ -71,7 +71,7 @@ class SampleRateConverter(object):
         self._converter_type = converter_type
         self._channels = channels
         if error != 0:
-            raise SampleRateError(error)
+            raise ResamplingError(error)
 
     @property
     def converter_type(self):
@@ -91,7 +91,7 @@ class SampleRateConverter(object):
 
     def process(self, input_data, ratio, end_of_input=0, verbose=False):
         from .lowlevel import src_process
-        from .exceptions import SampleRateError
+        from .exceptions import ResamplingError
 
         input_data = np.require(input_data, requirements='C', dtype=np.float32)
         if input_data.ndim == 2:
@@ -114,7 +114,7 @@ class SampleRateConverter(object):
              self._state, input_data, output_data, ratio, end_of_input)
 
         if error != 0:
-            raise SampleRateError(error)
+            raise ResamplingError(error)
 
         if verbose:
             info = ('samplerate info:\n'
@@ -141,13 +141,13 @@ class CallbackResampler(object):
 
     def create(self):
         from .lowlevel import ffi, src_callback_new, src_delete
-        from .exceptions import SampleRateError
+        from .exceptions import ResamplingError
 
         state, handle, error = src_callback_new(
             self._callback, self._converter_type.value, self._channels
         )
         if error != 0:
-            raise SampleRateError(error)
+            raise ResamplingError(error)
         self._state = ffi.gc(state, src_delete)
         self._handle = handle
 
@@ -183,7 +183,7 @@ class CallbackResampler(object):
 
     def read(self, num_frames):
         from .lowlevel import src_callback_read, src_error
-        from .exceptions import SampleRateError
+        from .exceptions import ResamplingError
 
         if self._state is None:
             self.create()
@@ -198,11 +198,11 @@ class CallbackResampler(object):
         if ret == 0:
             error = src_error(self._state)
             if error:
-                raise SampleRateError(error)
+                raise ResamplingError(error)
 
         return (output_data[:ret, :] if self._channels > 1 else
                 output_data[:ret])
 
 
-def resampling_callback(*args):
+def callback_resampler(*args):
     return CallbackResampler(*args)

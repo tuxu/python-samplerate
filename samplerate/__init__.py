@@ -9,7 +9,7 @@ del get_versions
 from .lowlevel import __libsamplerate_version__
 
 # Convenience imports
-from .exceptions import SampleRateError
+from .exceptions import ResamplingError
 from .converters import resample
-from .converters import SampleRateConverter
-from .converters import resampling_callback
+from .converters import Resampler
+from .converters import callback_resampler

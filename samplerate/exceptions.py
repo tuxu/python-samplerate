@@ -2,7 +2,7 @@
 
 """
 
-class SampleRateError(RuntimeError):
+class ResamplingError(RuntimeError):
     """Runtime exception of libsamplerate"""
 
     def __init__(self, error):
@@ -10,5 +10,5 @@ class SampleRateError(RuntimeError):
         message = 'libsamplerate error #{}: {}'.format(
             error, src_strerror(error)
         )
-        super(SampleRateError, self).__init__(message)
+        super(ResamplingError, self).__init__(message)
         self.error = error

@@ -26,11 +26,12 @@ def test_simple(data, converter_type, ratio=2.0):
 
 def test_process(data, converter_type, ratio=2.0):
     num_channels, input_data = data
-    src = samplerate.SampleRateConverter(converter_type, num_channels)
+    src = samplerate.Resampler(converter_type, num_channels)
     src.process(input_data, ratio, verbose=False)
 
 
 def test_callback(data, converter_type, ratio=2.0):
+    from samplerate import callback_resampler
     num_channels, input_data = data
 
     def producer():
@@ -38,7 +39,8 @@ def test_callback(data, converter_type, ratio=2.0):
         while True:
             yield None
 
-    with samplerate.resampling_callback(
-        lambda: next(producer()), ratio, converter_type, num_channels
-    ) as resampler:
+    callback = lambda: next(producer())
+
+    with callback_resampler(callback, ratio, converter_type,
+                            num_channels) as resampler:
         resampler.read(int(ratio) * input_data.shape[0])
