@@ -10,7 +10,6 @@ created on macOS using [MXE](http://mxe.cc) with the `build_samplerate_mxe.sh`
 script:
 
     git clone https://github.com/mxe/mxe.git
-    patch -p1 -d mxe < mxe_libsamplerate-0.1.9.patch
     ./build-samplerate.sh
 
 ## Dylib for macOS (64-bit)
