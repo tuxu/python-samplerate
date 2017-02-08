@@ -8,10 +8,12 @@ import samplerate
 def data(request):
     num_channels = request.param
     periods = np.linspace(0, 10, 1000)
-    input_data = [np.sin(2*np.pi*periods + i*np.pi/2)
-                  for i in range(num_channels)]
-    return ((num_channels, input_data[0]) if num_channels == 1
-            else (num_channels, np.transpose(input_data)))
+    input_data = [
+        np.sin(2 * np.pi * periods + i * np.pi / 2)
+        for i in range(num_channels)
+    ]
+    return ((num_channels, input_data[0])
+            if num_channels == 1 else (num_channels, np.transpose(input_data)))
 
 
 @pytest.fixture(params=list(samplerate.converters.ConverterType))

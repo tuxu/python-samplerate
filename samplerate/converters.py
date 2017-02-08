@@ -55,12 +55,11 @@ def resample(input_data, ratio, converter_type, verbose=False):
                 .format(input_frames_used, output_frames_gen))
         print(info)
 
-    return (output_data[:output_frames_gen, :] if channels > 1 else
-            output_data[:output_frames_gen])
+    return (output_data[:output_frames_gen, :]
+            if channels > 1 else output_data[:output_frames_gen])
 
 
 class Resampler(object):
-
     def __init__(self, converter_type, channels):
         from .lowlevel import ffi, src_new, src_delete
         from .exceptions import ResamplingError
@@ -108,10 +107,8 @@ class Resampler(object):
 
         output_data = np.empty(output_shape, dtype=np.float32)
 
-        (error,
-         input_frames_used,
-         output_frames_gen) = src_process(
-             self._state, input_data, output_data, ratio, end_of_input)
+        (error, input_frames_used, output_frames_gen) = src_process(
+            self._state, input_data, output_data, ratio, end_of_input)
 
         if error != 0:
             raise ResamplingError(error)
@@ -123,12 +120,11 @@ class Resampler(object):
                     .format(input_frames_used, output_frames_gen))
             print(info)
 
-        return (output_data[:output_frames_gen, :] if channels > 1 else
-                output_data[:output_frames_gen])
+        return (output_data[:output_frames_gen, :]
+                if channels > 1 else output_data[:output_frames_gen])
 
 
 class CallbackResampler(object):
-
     def __init__(self, callback, ratio, converter_type, channels):
         if channels < 1:
             raise ValueError('Invalid number of channels.')
@@ -144,8 +140,7 @@ class CallbackResampler(object):
         from .exceptions import ResamplingError
 
         state, handle, error = src_callback_new(
-            self._callback, self._converter_type.value, self._channels
-        )
+            self._callback, self._converter_type.value, self._channels)
         if error != 0:
             raise ResamplingError(error)
         self._state = ffi.gc(state, src_delete)
@@ -200,8 +195,8 @@ class CallbackResampler(object):
             if error:
                 raise ResamplingError(error)
 
-        return (output_data[:ret, :] if self._channels > 1 else
-                output_data[:ret])
+        return (output_data[:ret, :]
+                if self._channels > 1 else output_data[:ret])
 
 
 def callback_resampler(*args):

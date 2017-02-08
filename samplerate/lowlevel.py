@@ -23,11 +23,11 @@ if lib_filename is None:
     else:
         raise OSError('{} not found'.format(lib_basename))
     lib_filename = _os.path.join(
-        _os.path.dirname(_os.path.abspath(__file__)),
-        '_samplerate_data', lib_filename
-    )
+        _os.path.dirname(_os.path.abspath(__file__)), '_samplerate_data',
+        lib_filename)
 
 _lib = ffi.dlopen(lib_filename)
+
 
 def _check_data(data):
     """Check whether `data` is a valid input/output for libsamplerate.
@@ -233,6 +233,5 @@ def src_callback_read(state, ratio, frames, data):
 
 __libsamplerate_version__ = src_get_version()
 if __libsamplerate_version__.startswith(lib_basename):
-    __libsamplerate_version__ = __libsamplerate_version__[
-        len(lib_basename) + 1:__libsamplerate_version__.find(' ')
-    ]
+    __libsamplerate_version__ = __libsamplerate_version__[len(
+        lib_basename) + 1:__libsamplerate_version__.find(' ')]
