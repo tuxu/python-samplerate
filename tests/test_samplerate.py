@@ -34,15 +34,14 @@ def test_process(data, converter_type, ratio=2.0):
 
 def test_callback(data, converter_type, ratio=2.0):
     from samplerate import callback_resampler
-    num_channels, input_data = data
+    _, input_data = data
 
     def producer():
         yield input_data
         while True:
             yield None
 
-    callback = lambda: next(producer())
+    callback = lambda p=producer(): next(p)
 
-    with callback_resampler(callback, ratio, converter_type,
-                            num_channels) as resampler:
+    with callback_resampler(callback, ratio, converter_type) as resampler:
         resampler.read(int(ratio) * input_data.shape[0])
