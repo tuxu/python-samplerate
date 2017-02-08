@@ -24,7 +24,7 @@ def _get_converter_type(identifier):
     return ConverterType(identifier)
 
 
-def resample(input_data, ratio, converter_type, verbose=False):
+def resample(input_data, ratio, converter_type='sinc_best', verbose=False):
     from .lowlevel import src_simple
     from .exceptions import ResamplingError
 
@@ -60,7 +60,7 @@ def resample(input_data, ratio, converter_type, verbose=False):
 
 
 class Resampler(object):
-    def __init__(self, converter_type, channels):
+    def __init__(self, converter_type='sinc_fastest', channels=1):
         from .lowlevel import ffi, src_new, src_delete
         from .exceptions import ResamplingError
 
@@ -125,7 +125,8 @@ class Resampler(object):
 
 
 class CallbackResampler(object):
-    def __init__(self, callback, ratio, converter_type, channels):
+    def __init__(self, callback, ratio, converter_type='sinc_fastest',
+                 channels=1):
         if channels < 1:
             raise ValueError('Invalid number of channels.')
         self._callback = callback
