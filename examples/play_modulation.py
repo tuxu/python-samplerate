@@ -11,11 +11,11 @@ import numpy as np
 import sounddevice as sd
 import samplerate as sr
 
-SOURCE_SAMPLERATE = 3600
-TARGET_SAMPLERATE = 44100
-CONVERTER_TYPE = 'sinc_fastest'
+source_samplerate = 3600
+target_samplerate = 44100
+converter_type = 'sinc_fastest'
 
-PARAMS = {
+params = {
     'mod_amplitude': 1,  # Modulation amplitude (Hz)
     'mod_frequency': 1,  # Modulation frequency (Hz)
     'fm_gain': 20,  # FM gain (Hz/Hz)
@@ -109,7 +109,7 @@ def main(source_samplerate, target_samplerate, params, converter_type):
 
 if __name__ == '__main__':
     main(
-        source_samplerate=SOURCE_SAMPLERATE,
-        target_samplerate=TARGET_SAMPLERATE,
-        params=PARAMS,
-        converter_type=CONVERTER_TYPE)
+        source_samplerate=source_samplerate,
+        target_samplerate=target_samplerate,
+        params=params,
+        converter_type=converter_type)
