@@ -6,7 +6,6 @@ from enum import Enum
 import numpy as np
 
 
-#pylint disable: too-few-public-methods
 class ConverterType(Enum):
     sinc_best = 0
     sinc_medium = 1
@@ -17,10 +16,10 @@ class ConverterType(Enum):
 
 def _get_converter_type(identifier):
     """Return the converter type for `identifier`."""
-    if isinstance(identifier, ConverterType):
-        return identifier
     if isinstance(identifier, str):
         return ConverterType[identifier]
+    if isinstance(identifier, ConverterType):
+        return identifier
     return ConverterType(identifier)
 
 

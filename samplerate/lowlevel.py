@@ -11,7 +11,6 @@ import numpy as _np
 
 # Locate and load libsamplerate
 from ._src import ffi
-#pylint: disable=invalid-name
 lib_basename = 'libsamplerate'
 lib_filename = _find_library('samplerate')
 if lib_filename is None:
