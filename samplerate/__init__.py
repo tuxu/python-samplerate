@@ -2,14 +2,14 @@
 
 """
 # Versioning
-from ._version import get_versions
+from samplerate._version import get_versions
 __version__ = get_versions()['version']
 del get_versions
 
-from .lowlevel import __libsamplerate_version__
+from samplerate.lowlevel import __libsamplerate_version__
 
 # Convenience imports
-from .exceptions import ResamplingError
-from .converters import resample
-from .converters import Resampler
-from .converters import callback_resampler
+from samplerate.exceptions import ResamplingError
+from samplerate.converters import resample
+from samplerate.converters import Resampler
+from samplerate.converters import callback_resampler

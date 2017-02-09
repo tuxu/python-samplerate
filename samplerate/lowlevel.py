@@ -10,7 +10,7 @@ from ctypes.util import find_library as _find_library
 import numpy as _np
 
 # Locate and load libsamplerate
-from ._src import ffi
+from samplerate._src import ffi
 lib_basename = 'libsamplerate'
 lib_filename = _find_library('samplerate')
 if lib_filename is None:
