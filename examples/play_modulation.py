@@ -27,10 +27,14 @@ PARAMS = {
 def get_input_callback(samplerate, params, num_samples=256):
     """Return a function that produces samples of a sine.
 
-    Args:
-        samplerate: The sample rate.
-        params: Parameters for FM generation.
-        num_samples: Number of samples to be generated on each call.
+    Parameters
+    ----------
+    samplerate : float
+        The sample rate.
+    params : dict
+        Parameters for FM generation.
+    num_samples : int, optional
+        Number of samples to be generated on each call.
     """
     amplitude = params['mod_amplitude']
     frequency = params['mod_frequency']
@@ -38,8 +42,10 @@ def get_input_callback(samplerate, params, num_samples=256):
     def producer():
         """Generate samples.
 
-        Yields:
-            np.array(float): `num_samples` of the sine.
+        Yields
+        ------
+        samples : ndarray
+            A number of samples (`num_samples`) of the sine.
         """
         start_time = 0
         while True:
@@ -54,10 +60,14 @@ def get_input_callback(samplerate, params, num_samples=256):
 def get_playback_callback(resampler, samplerate, params):
     """Return a sound playback callback.
 
-    Args:
-        resampler: The resampler from which samples are read.
-        samplerate: The sample rate.
-        params: Parameters for FM generation.
+    Parameters
+    ----------
+    resampler
+        The resampler from which samples are read.
+    samplerate : float
+        The sample rate.
+    params : dict
+        Parameters for FM generation.
     """
 
     def callback(outdata, frames, time, _):

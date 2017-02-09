@@ -32,10 +32,15 @@ _lib = ffi.dlopen(lib_filename)
 def _check_data(data):
     """Check whether `data` is a valid input/output for libsamplerate.
 
-    Returns:
-        A tuple (num_frames, channels).
+    Returns
+    -------
+    num_frames
+        Number of frames in `data`.
+    channels
+        Number of channels in `data`.
 
-    Raises:
+    Raises
+    ------
         ValueError: If invalid data is supplied.
     """
     if not (data.dtype == _np.float32 and data.flags.c_contiguous):
@@ -91,15 +96,19 @@ def src_simple(input_data, output_data, ratio, converter_type, channels):
 def src_new(converter_type, channels):
     """Initialise a new sample rate converter.
 
-    Args:
-        converter_type (int): Converter to be used.
-        channels (int): Number of channels.
+    Parameters
+    ----------
+    converter_type : int
+        Converter to be used.
+    channels : int
+        Number of channels.
 
-    Returns:
-        A tuple (state, error).
-
-        state: An anonymous pointer to the internal state of the converter.
-        error: An error code.
+    Returns
+    -------
+    state
+        An anonymous pointer to the internal state of the converter.
+    error : int
+        Error code.
     """
     error = ffi.new('int*')
     state = _lib.src_new(converter_type, channels, error)
@@ -171,8 +180,10 @@ def _src_input_callback(cb_data, data):
     the API (float, interleaved channels). A reference to these data is kept
     internally.
 
-    Returns:
-        int: The number of frames supplied.
+    Returns
+    -------
+    frames : int
+        The number of frames supplied.
     """
     cb_data = ffi.from_handle(cb_data)
     ret = cb_data['callback']()
@@ -197,18 +208,24 @@ def _src_input_callback(cb_data, data):
 def src_callback_new(callback, converter_type, channels):
     """Initialisation for the callback based API.
 
-    Args:
-        callback (function): Called whenever new frames are to be read. Must
-            return a NumPy array of shape (num_frames, channels).
-        converter_type (int): Converter to be used.
-        channels (int): Number of channels.
+    Parameters
+    ----------
+    callback : function
+        Called whenever new frames are to be read. Must return a NumPy array
+        of shape (num_frames, channels).
+    converter_type : int
+        Converter to be used.
+    channels : int
+        Number of channels.
 
-    Returns:
-        A tuple (state, handle, error).
-
-        state: An anonymous pointer to the internal state of the converter.
-        handle: A CFFI handle to the callback data.
-        error: An error code.
+    Returns
+    -------
+    state
+        An anonymous pointer to the internal state of the converter.
+    handle
+        A CFFI handle to the callback data.
+    error : int
+        Error code.
 
     """
     cb_data = {'callback': callback, 'channels': channels}
@@ -224,8 +241,10 @@ def src_callback_new(callback, converter_type, channels):
 def src_callback_read(state, ratio, frames, data):
     """Read up to `frames` worth of data using the callback API.
 
-    Returns:
-        int: number of frames read or -1 on error.
+    Returns
+    -------
+    frames : int
+        Number of frames read or -1 on error.
     """
     data_ptr = ffi.cast('float*f', ffi.from_buffer(data))
     return _lib.src_callback_read(state, ratio, frames, data_ptr)
