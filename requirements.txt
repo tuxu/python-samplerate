@@ -1,3 +1,5 @@
 cffi>=1.0.0
 numpy>=1.7.0
-enum34
+enum34; python_version < "3.4"
+mock; python_version < "3.3"
+
