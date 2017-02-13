@@ -134,6 +134,7 @@ class CallbackResampler(object):
         self._channels = channels
         self._state = None
         self._handle = None
+        self.create()
 
     def create(self):
         from samplerate.lowlevel import ffi, src_callback_new, src_delete
@@ -152,10 +153,9 @@ class CallbackResampler(object):
             self._handle = None
 
     def __enter__(self):
-        self.create()
         return self
 
-    def __exit__(self, exc_type, exc_value, exc_traceback):
+    def __exit__(self, *args):
         self.destroy()
 
     def set_starting_ratio(self, ratio):
@@ -197,7 +197,3 @@ class CallbackResampler(object):
 
         return (output_data[:ret, :]
                 if self._channels > 1 else output_data[:ret])
-
-
-def callback_resampler(*args):
-    return CallbackResampler(*args)

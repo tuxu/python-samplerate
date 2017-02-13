@@ -12,4 +12,4 @@ from samplerate.lowlevel import __libsamplerate_version__
 from samplerate.exceptions import ResamplingError
 from samplerate.converters import resample
 from samplerate.converters import Resampler
-from samplerate.converters import callback_resampler
+from samplerate.converters import CallbackResampler
