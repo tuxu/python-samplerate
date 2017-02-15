@@ -32,6 +32,14 @@ def test_process(data, converter_type, ratio=2.0):
     src.process(input_data, ratio)
 
 
+def test_match(data, converter_type, ratio=2.0):
+    num_channels, input_data = data
+    output_simple = samplerate.resample(input_data, ratio, converter_type)
+    resampler = samplerate.Resampler(converter_type, channels=num_channels)
+    output_full = resampler.process(input_data, ratio, end_of_input=True)
+    assert np.allclose(output_simple, output_full)
+
+
 def test_callback(data, converter_type, ratio=2.0):
     from samplerate import CallbackResampler
     _, input_data = data
