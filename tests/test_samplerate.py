@@ -23,17 +23,17 @@ def converter_type(request):
 
 def test_simple(data, converter_type, ratio=2.0):
     _, input_data = data
-    samplerate.resample(input_data, ratio, converter_type, verbose=False)
+    samplerate.resample(input_data, ratio, converter_type)
 
 
 def test_process(data, converter_type, ratio=2.0):
     num_channels, input_data = data
     src = samplerate.Resampler(converter_type, num_channels)
-    src.process(input_data, ratio, verbose=False)
+    src.process(input_data, ratio)
 
 
 def test_callback(data, converter_type, ratio=2.0):
-    from samplerate import callback_resampler
+    from samplerate import CallbackResampler
     _, input_data = data
 
     def producer():
@@ -43,5 +43,5 @@ def test_callback(data, converter_type, ratio=2.0):
 
     callback = lambda p=producer(): next(p)
 
-    with callback_resampler(callback, ratio, converter_type) as resampler:
+    with CallbackResampler(callback, ratio, converter_type) as resampler:
         resampler.read(int(ratio) * input_data.shape[0])
