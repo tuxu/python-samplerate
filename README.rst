@@ -25,7 +25,7 @@ Installation
     $ pip install samplerate
 
 Binaries of `libsamplerate`_ for macOS and Windows (32 and 64 bit) are included
-and used if the library is not installed.
+and used if not present on the system.
 
 
 Usage
