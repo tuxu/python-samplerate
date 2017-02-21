@@ -7,6 +7,7 @@ import numpy as np
 
 
 class ConverterType(Enum):
+    """Samplerate converter types."""
     sinc_best = 0
     sinc_medium = 1
     sinc_fastest = 2
@@ -24,6 +25,32 @@ def _get_converter_type(identifier):
 
 
 def resample(input_data, ratio, converter_type='sinc_best', verbose=False):
+    """Resample the signal in `input_data` at once.
+
+    Parameters
+    ----------
+    input_data : ndarray
+        Input data. A single channel is provided as a 1D array of `num_frames`
+        length. Several channels are represented as a 2D array of shape
+        (`num_frames`, `num_channels`). For use with `libsamplerate`, `input_data`
+        is converted to 32-bit float and C (row-major) memory order.
+    ratio : float
+        Conversion ratio = output sample rate / input sample rate.
+    converter_type : ConverterType, str, or int
+        Sample rate converter.
+    verbose : bool
+        If `True`, print additional information about the conversion.
+
+    Returns
+    -------
+    output_data : ndarray
+        Resampled input data.
+
+
+    .. note::
+        If samples are to be processed in chunks, `Resampler` and `CallbackResampler`
+        will provide better results and allow for variable conversion ratios.
+    """
     from samplerate.lowlevel import src_simple
     from samplerate.exceptions import ResamplingError
 
@@ -59,6 +86,15 @@ def resample(input_data, ratio, converter_type='sinc_best', verbose=False):
 
 
 class Resampler(object):
+    """Resampler.
+
+    Parameters
+    ----------
+    converter_type : ConverterType, str, or int
+        Sample rate converter.
+    num_channels : int
+        Number of channels.
+    """
     def __init__(self, converter_type='sinc_fastest', channels=1):
         from samplerate.lowlevel import ffi, src_new, src_delete
         from samplerate.exceptions import ResamplingError
@@ -73,21 +109,46 @@ class Resampler(object):
 
     @property
     def converter_type(self):
+        """Converter type."""
         return self._converter_type
 
     @property
     def channels(self):
+        """Number of channels."""
         return self._channels
 
     def reset(self):
+        """Reset internal state."""
         from samplerate.lowlevel import src_reset
         return src_reset(self._state)
 
     def set_ratio(self, new_ratio):
+        """Set a new conversion ratio immediately."""
         from samplerate.lowlevel import src_set_ratio
         return src_set_ratio(self._state, new_ratio)
 
-    def process(self, input_data, ratio, end_of_input=0, verbose=False):
+    def process(self, input_data, ratio, end_of_input=False, verbose=False):
+        """Resample the signal in `input_data`.
+
+        Parameters
+        ----------
+        input_data : ndarray
+            Input data. A single channel is provided as a 1D array of `num_frames`
+            length. Several channels are represented as a 2D array of shape
+            (`num_frames`, `num_channels`). For use with `libsamplerate`, `input_data`
+            is converted to 32-bit float and C (row-major) memory order.
+        ratio : float
+            Conversion ratio = output sample rate / input sample rate.
+        end_of_input : int
+            Set to `True` if no more data is available, or to `False` otherwise.
+        verbose : bool
+            If `True`, print additional information about the conversion.
+
+        Returns
+        -------
+        output_data : ndarray
+            Resampled input data.
+        """
         from samplerate.lowlevel import src_process
         from samplerate.exceptions import ResamplingError
 
@@ -124,6 +185,24 @@ class Resampler(object):
 
 
 class CallbackResampler(object):
+    """CallbackResampler.
+
+    Parameters
+    ----------
+    callback : function
+        Function that returns new frames on each call, or `None` otherwise.
+        A single channel is provided as a 1D array of `num_frames` length.
+        Several channels are represented as a 2D array of shape
+        (`num_frames`, `num_channels`). For use with `libsamplerate`,
+        the returned data is converted to 32-bit float and C (row-major)
+        memory order.
+    ratio : float
+        Conversion ratio = output sample rate / input sample rate.
+    converter_type : ConverterType, str, or int
+        Sample rate converter.
+    channels : int
+        Number of channels.
+    """
     def __init__(self, callback, ratio, converter_type='sinc_fastest',
                  channels=1):
         if channels < 1:
@@ -134,9 +213,10 @@ class CallbackResampler(object):
         self._channels = channels
         self._state = None
         self._handle = None
-        self.create()
+        self._create()
 
-    def create(self):
+    def _create(self):
+        """Create new callback resampler."""
         from samplerate.lowlevel import ffi, src_callback_new, src_delete
         from samplerate.exceptions import ResamplingError
 
@@ -147,7 +227,8 @@ class CallbackResampler(object):
         self._state = ffi.gc(state, src_delete)
         self._handle = handle
 
-    def destroy(self):
+    def _destroy(self):
+        """Destroy resampler state."""
         if self._state:
             self._state = None
             self._handle = None
@@ -156,20 +237,26 @@ class CallbackResampler(object):
         return self
 
     def __exit__(self, *args):
-        self.destroy()
+        self._destroy()
 
     def set_starting_ratio(self, ratio):
         """ Set the starting conversion ratio for the next `read` call. """
         from samplerate.lowlevel import src_set_ratio
+        if self._state is None:
+            self._create()
         src_set_ratio(self._state, ratio)
         self.ratio = ratio
 
     def reset(self):
+        """Reset state."""
         from samplerate.lowlevel import src_reset
+        if self._state is None:
+            self._create()
         src_reset(self._state)
 
     @property
     def ratio(self):
+        """Conversion ratio = output sample rate / input sample rate."""
         return self._ratio
 
     @ratio.setter
@@ -177,11 +264,26 @@ class CallbackResampler(object):
         self._ratio = ratio
 
     def read(self, num_frames):
+        """Read a number of frames from the resampler.
+
+        Parameters
+        ----------
+        num_frames : int
+            Number of frames to read.
+
+        Returns
+        -------
+        output_data : ndarray
+            Resampled frames as a (`num_output_frames`, `num_channels`) or
+            (`num_output_frames`,) array. Note that `num_output_frames` may
+            be lower than `num_frames`, for example when no more input is
+            available.
+        """
         from samplerate.lowlevel import src_callback_read, src_error
         from samplerate.exceptions import ResamplingError
 
         if self._state is None:
-            self.create()
+            self._create()
         if self._channels > 1:
             output_shape = (num_frames, self._channels)
         elif self._channels == 1:
