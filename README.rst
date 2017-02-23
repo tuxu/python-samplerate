@@ -56,6 +56,11 @@ Usage
    # See `samplerate.CallbackResampler` for the Callback API, or
    # `examples/play_modulation.py` for an example.
 
+See :func:`~samplerate.converters.resample`,
+:class:`~samplerate.converters.Resampler`, and
+:class:`~samplerate.converters.CallbackResampler` in the API documentation for
+details.
+
 
 See also
 --------
@@ -65,15 +70,18 @@ See also
   extern calls. The `resample` function of `scikits.samplerate` and this package
   share the same function signature for compatiblity.
 
+* `resampy <https://github.com/bmcfee/resampy>`_: sample rate conversion in
+  Python + Cython.
+
 
 License
 -------
 
-This project is licensed under the MIT license. See `LICENSE.rst <LICENSE.rst>`_
-for details.
+This project is licensed under the `MIT license
+<https://opensource.org/licenses/MIT>`_.
 
-As of version 0.1.9, `libsamplerate`_ is licensed under the 2-clause BSD
-license.
+As of version 0.1.9, `libsamplerate`_ is licensed under the `2-clause BSD
+license <https://opensource.org/licenses/BSD-2-Clause>`_.
 
 
 .. _libsamplerate: http://www.mega-nerd.com/libsamplerate/

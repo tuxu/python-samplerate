@@ -7,7 +7,11 @@ import numpy as np
 
 
 class ConverterType(Enum):
-    """Samplerate converter types."""
+    """Enum of samplerate converter types.
+
+    Pass any of the members, or their string or value representation, as
+    ``converter_type`` in the resamplers.
+    """
     sinc_best = 0
     sinc_medium = 1
     sinc_fastest = 2
@@ -30,8 +34,8 @@ def resample(input_data, ratio, converter_type='sinc_best', verbose=False):
     Parameters
     ----------
     input_data : ndarray
-        Input data. A single channel is provided as a 1D array of `num_frames`
-        length. Several channels are represented as a 2D array of shape
+        Input data. A single channel is provided as a 1D array of `num_frames` length.
+        Input data with several channels is represented as a 2D array of shape
         (`num_frames`, `num_channels`). For use with `libsamplerate`, `input_data`
         is converted to 32-bit float and C (row-major) memory order.
     ratio : float
@@ -46,10 +50,11 @@ def resample(input_data, ratio, converter_type='sinc_best', verbose=False):
     output_data : ndarray
         Resampled input data.
 
-
-    .. note::
-        If samples are to be processed in chunks, `Resampler` and `CallbackResampler`
-        will provide better results and allow for variable conversion ratios.
+    Note
+    ----
+    If samples are to be processed in chunks, `Resampler` and
+    `CallbackResampler` will provide better results and allow for variable
+    conversion ratios.
     """
     from samplerate.lowlevel import src_simple
     from samplerate.exceptions import ResamplingError
@@ -133,8 +138,8 @@ class Resampler(object):
         Parameters
         ----------
         input_data : ndarray
-            Input data. A single channel is provided as a 1D array of `num_frames`
-            length. Several channels are represented as a 2D array of shape
+            Input data. A single channel is provided as a 1D array of `num_frames` length.
+            Input data with several channels is represented as a 2D array of shape
             (`num_frames`, `num_channels`). For use with `libsamplerate`, `input_data`
             is converted to 32-bit float and C (row-major) memory order.
         ratio : float
@@ -192,10 +197,9 @@ class CallbackResampler(object):
     callback : function
         Function that returns new frames on each call, or `None` otherwise.
         A single channel is provided as a 1D array of `num_frames` length.
-        Several channels are represented as a 2D array of shape
-        (`num_frames`, `num_channels`). For use with `libsamplerate`,
-        the returned data is converted to 32-bit float and C (row-major)
-        memory order.
+        Input data with several channels is represented as a 2D array of shape
+        (`num_frames`, `num_channels`). For use with `libsamplerate`, `input_data`
+        is converted to 32-bit float and C (row-major) memory order.
     ratio : float
         Conversion ratio = output sample rate / input sample rate.
     converter_type : ConverterType, str, or int
@@ -275,9 +279,8 @@ class CallbackResampler(object):
         -------
         output_data : ndarray
             Resampled frames as a (`num_output_frames`, `num_channels`) or
-            (`num_output_frames`,) array. Note that `num_output_frames` may
-            be lower than `num_frames`, for example when no more input is
-            available.
+            (`num_output_frames`,) array. Note that this may return fewer frames
+            than requested, for example when no more input is available.
         """
         from samplerate.lowlevel import src_callback_read, src_error
         from samplerate.exceptions import ResamplingError
