@@ -56,10 +56,8 @@ Usage
    # See `samplerate.CallbackResampler` for the Callback API, or
    # `examples/play_modulation.py` for an example.
 
-See :func:`~samplerate.converters.resample`,
-:class:`~samplerate.converters.Resampler`, and
-:class:`~samplerate.converters.CallbackResampler` in the API documentation for
-details.
+See ``samplerate.resample``, ``samplerate.Resampler``, and
+``samplerate.CallbackResampler`` in the API documentation for details.
 
 
 See also
