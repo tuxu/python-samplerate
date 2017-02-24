@@ -1,6 +1,23 @@
 python-samplerate
 =================
 
+.. image:: https://img.shields.io/pypi/v/samplerate.svg
+    :target: https://pypi.python.org/pypi/samplerate
+
+.. image:: https://img.shields.io/pypi/l/samplerate.svg
+    :target: https://pypi.python.org/pypi/samplerate
+
+.. image:: https://img.shields.io/pypi/wheel/samplerate.svg
+    :target: https://pypi.python.org/pypi/samplerate
+
+.. image:: https://img.shields.io/pypi/pyversions/samplerate.svg
+    :target: https://pypi.python.org/pypi/samplerate
+
+.. image:: https://readthedocs.org/projects/python-samplerate/badge/?version=latest
+   :target: http://python-samplerate.readthedocs.io/en/latest/?badge=latest
+   :alt: Documentation Status
+
+
 This is a wrapper around Erik de Castro Lopo's `libsamplerate`_ (aka Secret
 Rabbit Code) for high-quality sample rate conversion.
 
