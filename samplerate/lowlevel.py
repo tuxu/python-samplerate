@@ -13,7 +13,16 @@ import numpy as _np
 from samplerate._src import ffi
 lib_basename = 'libsamplerate'
 lib_filename = _find_library('samplerate')
-if lib_filename is None:
+
+if _os.environ.get('READTHEDOCS') == 'True':
+    # Mock minimum C API for Read the Docs
+    class MockLib(object):
+        @classmethod
+        def src_get_version(cls):
+            return ffi.new('char[]', 'libsamplerate-0.1.9 (c) ...')
+    lib_filename = 'mock'
+    _lib = MockLib()
+elif lib_filename is None:
     if _sys.platform == 'darwin':
         lib_filename = '{}.dylib'.format(lib_basename)
     elif _sys.platform == 'win32':
@@ -24,8 +33,9 @@ if lib_filename is None:
     lib_filename = _os.path.join(
         _os.path.dirname(_os.path.abspath(__file__)), '_samplerate_data',
         lib_filename)
-
-_lib = ffi.dlopen(lib_filename)
+    _lib = ffi.dlopen(lib_filename)
+else:
+    _lib = ffi.dlopen(lib_filename)
 
 
 def _check_data(data):
