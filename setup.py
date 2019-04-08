@@ -31,6 +31,6 @@ setup(
     zip_safe=False,
     cffi_modules=['samplerate/samplerate_build.py:ffibuilder'],
     setup_requires=['cffi>=1.0.0', 'pytest-runner'],
-    install_requires=['cffi>=1.0.0', 'numpy'],
+    install_requires=['cffi>=1.0.0', 'numpy', 'enum34;python_version<"3.4"'],
     tests_require=['pytest'],
 )
