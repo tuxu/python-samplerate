@@ -32,12 +32,24 @@ def test_process(data, converter_type, ratio=2.0):
     src.process(input_data, ratio)
 
 
-def test_match(data, converter_type, ratio=2.0):
+def test_match(data, converter_type, ratio=2.123):
     num_channels, input_data = data
     output_simple = samplerate.resample(input_data, ratio, converter_type)
     resampler = samplerate.Resampler(converter_type, channels=num_channels)
-    output_full = resampler.process(input_data, ratio, end_of_input=True)
-    assert np.allclose(output_simple, output_full)
+    if num_channels == 2:
+        output_full = np.empty((0,num_channels), dtype=np.float32)
+        for i in range(10):
+            output_full = np.append(output_full, resampler.process(input_data[100*i:100*(i+1),:], ratio), axis=0)
+        m = output_simple.shape[0]
+        output_simple = np.resize(output_simple, output_full.shape)
+        assert np.allclose(output_simple, output_full) and output_full.shape[0] > 0.8*m
+    else:
+        output_full = np.empty(0, dtype=np.float32)
+        for i in range(10):
+            output_full = np.append(output_full, resampler.process(input_data[100*i:100*(i+1)], ratio))
+        m = len(output_simple)
+        output_simple = np.resize(output_simple, output_full.shape)
+        assert np.allclose(output_simple, output_full) and len(output_full) > 0.8*m
 
 
 def test_callback(data, converter_type, ratio=2.0):
