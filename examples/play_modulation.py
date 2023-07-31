@@ -6,9 +6,11 @@ played back on the default sound output. During playback, the modulation signal
 is generated at source samplerate, then resampled to target samplerate, and
 mixed onto the carrier.
 """
-from __future__ import print_function, division
+from __future__ import division, print_function
+
 import numpy as np
 import sounddevice as sd
+
 import samplerate as sr
 
 source_samplerate = 3600

@@ -52,8 +52,8 @@ using np_array_f32 =
 
 namespace samplerate {
 
-enum ConverterType {
-  sinc_best = 0,
+enum class ConverterType {
+  sinc_best,
   sinc_medium,
   sinc_fastest,
   zero_order_hold,
@@ -99,7 +99,6 @@ int get_converter_type(const py::object &obj) {
 }
 
 void error_handler(int errnum) {
-  std::cout << errnum << std::endl;
   if (errnum > 0 && errnum < 24) {
     throw ResamplingException(errnum);
   } else if (errnum != 0) {  // the zero case is excluded as it is not an error
@@ -112,7 +111,6 @@ void error_handler(int errnum) {
 class Resampler {
  private:
   SRC_STATE *_state = nullptr;
-  int _err_num = 0;
 
  public:
   int _converter_type = 0;
@@ -122,15 +120,24 @@ class Resampler {
   Resampler(const py::object &converter_type, int channels)
       : _converter_type(get_converter_type(converter_type)),
         _channels(channels) {
+    int _err_num = 0;
     _state = src_new(_converter_type, _channels, &_err_num);
+    error_handler(_err_num);
   }
 
   // copy constructor
   Resampler(const Resampler &r)
       : _converter_type(r._converter_type), _channels(r._channels) {
+    int _err_num = 0;
     _state = src_clone(r._state, &_err_num);
     error_handler(_err_num);
   }
+
+  // delete move constructor
+  Resampler(const Resampler &&r)
+      : _state(r._state),
+        _converter_type(r._converter_type),
+        _channels(r._channels) {}
 
   ~Resampler() { src_delete(_state); }
 
@@ -150,11 +157,12 @@ class Resampler {
     if (channels != _channels || channels == 0)
       throw std::domain_error("Invalid number of channels in input data.");
 
-    const size_t new_size = size_t(std::ceil(inbuf.shape[0] * sr_ratio));
+    const auto new_size =
+        static_cast<size_t>(std::ceil(inbuf.shape[0] * sr_ratio));
 
     // allocate output array
     std::vector<size_t> out_shape{new_size};
-    if (inbuf.ndim == 2) out_shape.push_back(size_t(channels));
+    if (inbuf.ndim == 2) out_shape.push_back(static_cast<size_t>(channels));
     auto output = py::array_t<float, py::array::c_style>(out_shape);
     py::buffer_info outbuf = output.request();
 
@@ -170,8 +178,7 @@ class Resampler {
         sr_ratio       // src_ratio, sampling rate conversion ratio
     };
 
-    _err_num = src_process(_state, &src_data);
-    error_handler(_err_num);
+    error_handler(src_process(_state, &src_data));
 
     // create a shorter view of the array
     if ((size_t)src_data.output_frames_gen < new_size) {
@@ -184,14 +191,10 @@ class Resampler {
   }
 
   void set_ratio(double new_ratio) {
-    _err_num = src_set_ratio(_state, new_ratio);
-    error_handler(_err_num);
+    error_handler(src_set_ratio(_state, new_ratio));
   }
 
-  void reset() {
-    _err_num = src_reset(_state);
-    error_handler(_err_num);
-  }
+  void reset() { error_handler(src_reset(_state)); }
 
   Resampler clone() const { return Resampler(*this); }
 };
@@ -199,7 +202,6 @@ class Resampler {
 class CallbackResampler {
  private:
   SRC_STATE *_state = nullptr;
-  int _err_num = 0;
   callback_t _callback = nullptr;
   np_array_f32 _current_buffer;
   size_t _buffer_ndim = 0;
@@ -211,6 +213,7 @@ class CallbackResampler {
 
  private:
   void _create() {
+    int _err_num = 0;
     _state =
         src_callback_new(the_callback_func, _converter_type, (int)_channels,
                          &_err_num, static_cast<void *>(this));
@@ -240,6 +243,7 @@ class CallbackResampler {
         _ratio(r._ratio),
         _converter_type(r._converter_type),
         _channels(r._channels) {
+    int _err_num = 0;
     _state = src_clone(r._state, &_err_num);
     if (_state == nullptr) error_handler(_err_num);
   }
@@ -273,8 +277,7 @@ class CallbackResampler {
 
     // check error status
     if (output_frames_gen == 0) {
-      _err_num = src_error(_state);
-      error_handler(_err_num);
+      error_handler(src_error(_state));
     }
 
     // if there is only one channel and the input array had only on dimension
@@ -296,15 +299,11 @@ class CallbackResampler {
   }
 
   void set_starting_ratio(double new_ratio) {
-    _err_num = src_set_ratio(_state, new_ratio);
-    error_handler(_err_num);
+    error_handler(src_set_ratio(_state, new_ratio));
     _ratio = new_ratio;
   }
 
-  void reset() {
-    _err_num = src_reset(_state);
-    error_handler(_err_num);
-  }
+  void reset() { error_handler(src_reset(_state)); }
 
   CallbackResampler clone() const { return CallbackResampler(*this); }
   CallbackResampler &__enter__() { return *this; }
@@ -362,11 +361,12 @@ py::array_t<float, py::array::c_style> resample(
   if (channels == 0)
     throw std::domain_error("Invalid number of channels (0) in input data.");
 
-  const size_t new_size = size_t(std::ceil(inbuf.shape[0] * sr_ratio));
+  const auto new_size =
+      static_cast<size_t>(std::ceil(inbuf.shape[0] * sr_ratio));
 
   // allocate output array
   std::vector<size_t> out_shape{new_size};
-  if (inbuf.ndim == 2) out_shape.push_back(size_t(channels));
+  if (inbuf.ndim == 2) out_shape.push_back(static_cast<size_t>(channels));
   auto output = py::array_t<float, py::array::c_style>(out_shape);
   py::buffer_info outbuf = output.request();
 
@@ -394,9 +394,9 @@ py::array_t<float, py::array::c_style> resample(
   }
 
   if (verbose) {
-    std::cout << "samplerate info:\n"
-              << src_data.input_frames_used << " input frames used\n"
-              << src_data.output_frames_gen << " output frames generated\n";
+    py::print("samplerate info:");
+    py::print(src_data.input_frames_used, " input frames used");
+    py::print(src_data.output_frames_gen, " output frames generated");
   }
 
   return output;
@@ -413,12 +413,14 @@ PYBIND11_MODULE(samplerate, m) {
                                                                // docstring
   m.attr("__version__") = VERSION_INFO;
 
+  auto m_internals = m.def_submodule("_internals", "Internal helper functions");
+
   // give access to this function for testing
-  m.def("_get_converter_type", &sr::get_converter_type,
+  m_internals.def("get_converter_type", &sr::get_converter_type,
         "Convert python object to integer of converter tpe or raise an error "
         "if illegal");
 
-  m.def("_error_handler", &sr::error_handler,
+  m_internals.def("error_handler", &sr::error_handler,
         "A function to translate libsamplerate error codes into exceptions");
 
   py::register_exception<sr::ResamplingException>(m, "ResamplingError",
@@ -561,10 +563,10 @@ PYBIND11_MODULE(samplerate, m) {
       Pass any of the members, or their string or value representation, as
       ``converter_type`` in the resamplers.
     )mydelimiter")
-      .value("sinc_best", sr::sinc_best)
-      .value("sinc_medium", sr::sinc_medium)
-      .value("sinc_fastest", sr::sinc_fastest)
-      .value("zero_order_hold", sr::zero_order_hold)
-      .value("linear", sr::linear)
+      .value("sinc_best", sr::ConverterType::sinc_best)
+      .value("sinc_medium", sr::ConverterType::sinc_medium)
+      .value("sinc_fastest", sr::ConverterType::sinc_fastest)
+      .value("zero_order_hold", sr::ConverterType::zero_order_hold)
+      .value("linear", sr::ConverterType::linear)
       .export_values();
 }
