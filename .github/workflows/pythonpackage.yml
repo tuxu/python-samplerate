@@ -27,7 +27,9 @@ jobs:
     - name: Create virtual environment
       run: |
         python -m venv ci
-        . ./ci/bin/activate
+        source ./ci/bin/activate
+        echo "VIRTUAL ENV:" $VIRTUAL_ENV
+        which python
     - name: Install dependencies
       run: |
         which python
