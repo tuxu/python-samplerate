@@ -412,21 +412,28 @@ PYBIND11_MODULE(samplerate, m) {
                                                                // module
                                                                // docstring
   m.attr("__version__") = VERSION_INFO;
+  m.attr("__libsamplerate_version__") = LIBSAMPLERATE_VERSION;
 
+  auto m_exceptions = m.def_submodule(
+      "exceptions", "Sub-module containing sampling exceptions");
+  auto m_converters = m.def_submodule(
+      "converters", "Sub-module containing the samplerate converters");
   auto m_internals = m.def_submodule("_internals", "Internal helper functions");
 
   // give access to this function for testing
-  m_internals.def("get_converter_type", &sr::get_converter_type,
-        "Convert python object to integer of converter tpe or raise an error "
-        "if illegal");
+  m_internals.def(
+      "get_converter_type", &sr::get_converter_type,
+      "Convert python object to integer of converter tpe or raise an error "
+      "if illegal");
 
-  m_internals.def("error_handler", &sr::error_handler,
-        "A function to translate libsamplerate error codes into exceptions");
+  m_internals.def(
+      "error_handler", &sr::error_handler,
+      "A function to translate libsamplerate error codes into exceptions");
 
-  py::register_exception<sr::ResamplingException>(m, "ResamplingError",
-                                                  PyExc_RuntimeError);
+  py::register_exception<sr::ResamplingException>(
+      m_exceptions, "ResamplingError", PyExc_RuntimeError);
 
-  m.def("resample", &sr::resample, R"mydelimiter(
+  m_converters.def("resample", &sr::resample, R"mydelimiter(
     Resample the signal in `input_data` at once.
 
     Parameters
@@ -454,10 +461,11 @@ PYBIND11_MODULE(samplerate, m) {
     `CallbackResampler` will provide better results and allow for variable
     conversion ratios.
   )mydelimiter",
-        "input"_a, "ratio"_a, "converter_type"_a = int(SRC_SINC_BEST_QUALITY),
-        "verbose"_a = false);
+                   "input"_a, "ratio"_a,
+                   "converter_type"_a = int(SRC_SINC_BEST_QUALITY),
+                   "verbose"_a = false);
 
-  py::class_<sr::Resampler>(m, "Resampler", R"mydelimiter(
+  py::class_<sr::Resampler>(m_converters, "Resampler", R"mydelimiter(
     Resampler.
 
     Parameters
@@ -504,7 +512,8 @@ PYBIND11_MODULE(samplerate, m) {
       .def_readonly("channels", &sr::Resampler::_channels,
                     "Number of channels.");
 
-  py::class_<sr::CallbackResampler>(m, "CallbackResampler", R"mydelimiter(
+  py::class_<sr::CallbackResampler>(m_converters, "CallbackResampler",
+                                    R"mydelimiter(
     CallbackResampler.
 
     Parameters
@@ -557,7 +566,7 @@ PYBIND11_MODULE(samplerate, m) {
       .def_readonly("channels", &sr::CallbackResampler::_channels,
                     "Number of channels.");
 
-  py::enum_<sr::ConverterType>(m, "ConverterType", R"mydelimiter(
+  py::enum_<sr::ConverterType>(m_converters, "ConverterType", R"mydelimiter(
       Enum of samplerate converter types.
 
       Pass any of the members, or their string or value representation, as
@@ -569,4 +578,11 @@ PYBIND11_MODULE(samplerate, m) {
       .value("zero_order_hold", sr::ConverterType::zero_order_hold)
       .value("linear", sr::ConverterType::linear)
       .export_values();
+
+  // Convenience imports
+  m.attr("ResamplingError") = m_exceptions.attr("ResamplingError");
+  m.attr("resample") = m_converters.attr("resample");
+  m.attr("CallbackResampler") = m_converters.attr("CallbackResampler");
+  m.attr("Resampler") = m_converters.attr("Resampler");
+  m.attr("ConverterType") = m_converters.attr("ConverterType");
 }

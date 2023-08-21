@@ -17,5 +17,6 @@ FetchContent_Declare(
   GIT_REPOSITORY https://github.com/libsndfile/libsamplerate
   GIT_TAG c96f5e3de9c4488f4e6c97f59f5245f22fda22f7 # 0.2.2
 )
+set(LIBSAMPLERATE_VERSION 0.2.2 CACHE STRING PUBLIC)  # <-- update libsamplerate version here
 
 FetchContent_MakeAvailable(libsamplerate)

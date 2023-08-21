@@ -4,6 +4,23 @@ import pytest
 import samplerate
 
 
+def test_aliases():
+    from samplerate.converters import (
+        Resampler,
+        CallbackResampler,
+        resample,
+        ConverterType,
+    )
+    from samplerate import (
+        Resampler,
+        CallbackResampler,
+        resample,
+        ConverterType,
+        ResamplingError,
+    )
+    from samplerate.exceptions import ResamplingError
+
+
 @pytest.fixture(scope="module", params=[1, 2])
 def data(request):
     num_channels = request.param

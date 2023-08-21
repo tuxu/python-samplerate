@@ -9,23 +9,12 @@ project(python-samplerate)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 cmake_policy(SET CMP0094 NEW)
-# find_package(Python COMPONENTS Interpreter Development NumPy REQUIRED)
-
-# Use just one of these:
-#if (MSVC)
-#set(CMAKE_CXX_STANDARD 14)
-#else()
-## GCC/clang:
-#set(CMAKE_CXX_STANDARD 14)
-#endif()
 
 # adds the external dependencies
 add_subdirectory(external)
 
 pybind11_add_module(python-samplerate src/samplerate.cpp)
 
-#target_include_directories(python-samplerate PRIVATE ${Python_INCLUDE_DIRS})
-#target_include_directories(python-samplerate PRIVATE ${Python_NumPy_INCLUDE_DIRS})
 target_include_directories(python-samplerate PRIVATE ./external/libsamplerate/include)
 
 if(MSVC)
@@ -38,6 +27,9 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR
     (CMAKE_CXX_COMPILER_ID MATCHES "Intel" AND NOT WIN32))
     target_compile_options(python-samplerate PRIVATE -std=c++14 -O3 -Wall -Wextra)
 endif()
+
+### stick the libsamlerate version into the compilation
+target_compile_definitions(python-samplerate PUBLIC LIBSAMPLERATE_VERSION="${LIBSAMPLERATE_VERSION}")
 
 ### Final target setup
 set_target_properties(
