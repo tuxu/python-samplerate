@@ -123,5 +123,5 @@ def test_callback_with_2x(data, converter_type, ratio=2.0):
     ],
 )
 def test_converter_type(input_obj, expected_type):
-    ret = samplerate._get_converter_type(input_obj)
+    ret = samplerate._internals.get_converter_type(input_obj)
     assert ret == expected_type

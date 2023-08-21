@@ -8,15 +8,15 @@ import samplerate
 def test_resampling_error(errnum):
     if 0 < errnum < 24:
         with pytest.raises(samplerate.ResamplingError):
-            samplerate._error_handler(errnum)
+            samplerate._internals.error_handler(errnum)
     elif errnum != 0:
         with pytest.raises(RuntimeError):
-            samplerate._error_handler(errnum)
+            samplerate._internals.error_handler(errnum)
 
 
 def test_unknown_converter_type():
     with pytest.raises(ValueError):
-        samplerate._get_converter_type("super-downsampling")
+        samplerate._internals.get_converter_type("super-downsampling")
 
 
 def test_resample_zero_channel_input():
