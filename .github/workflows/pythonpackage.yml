@@ -24,15 +24,8 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Create virtual environment
-      run: |
-        python -m venv ci
-        source ./ci/bin/activate
-        echo "VIRTUAL ENV:" $VIRTUAL_ENV
-        which python
     - name: Install dependencies
       run: |
-        which python
         python -m pip install --upgrade pip
         pip install -U setuptools setuptools_scm wheel build twine
         pip install -r requirements.txt
