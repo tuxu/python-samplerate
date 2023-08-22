@@ -60,8 +60,6 @@ enum class ConverterType {
   linear
 };
 
-long the_callback_func(void *cb_data, float **data);
-
 class ResamplingException : public std::exception {
  public:
   explicit ResamplingException(int err_num) : message{src_strerror(err_num)} {}
@@ -212,14 +210,9 @@ class CallbackResampler {
   size_t _channels = 0;
 
  private:
-  void _create() {
-    int _err_num = 0;
-    _state =
-        src_callback_new(the_callback_func, _converter_type, (int)_channels,
-                         &_err_num, static_cast<void *>(this));
-    if (_state == nullptr) error_handler(_err_num);
-  }
-
+  // the definition of `_create` is defered to after the definition and
+  // declaration of `the_callback_func` callback function below.
+  void _create();
   void _destroy() {
     if (_state != nullptr) {
       src_delete(_state);
@@ -313,6 +306,10 @@ class CallbackResampler {
   }
 };
 
+namespace {
+
+long the_callback_func(void *cb_data, float **data);
+
 long the_callback_func(void *cb_data, float **data) {
   CallbackResampler *cb = static_cast<CallbackResampler *>(cb_data);
   int cb_channels = cb->get_channels();
@@ -340,6 +337,15 @@ long the_callback_func(void *cb_data, float **data) {
   *data = static_cast<float *>(inbuf.ptr);
 
   return (long)inbuf.shape[0];
+}
+
+}  // namespace
+
+void CallbackResampler::_create() {
+  int _err_num = 0;
+  _state = src_callback_new(the_callback_func, _converter_type, (int)_channels,
+                            &_err_num, static_cast<void *>(this));
+  if (_state == nullptr) error_handler(_err_num);
 }
 
 py::array_t<float, py::array::c_style> resample(
