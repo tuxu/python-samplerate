@@ -131,13 +131,17 @@ class Resampler {
     error_handler(_err_num);
   }
 
-  // delete move constructor
+  // move constructor
   Resampler(const Resampler &&r)
       : _state(r._state),
         _converter_type(r._converter_type),
-        _channels(r._channels) {}
+        _channels(r._channels) {
+    r._state = nullptr;
+    r._converter_type = 0;
+    r._channels = 0;
+  }
 
-  ~Resampler() { src_delete(_state); }
+  ~Resampler() { src_delete(_state); }  // src_delete handles nullptr case
 
   py::array_t<float, py::array::c_style> process(
       py::array_t<float, py::array::c_style | py::array::forcecast> input,
