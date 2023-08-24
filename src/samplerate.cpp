@@ -132,7 +132,7 @@ class Resampler {
   }
 
   // move constructor
-  Resampler(const Resampler &&r)
+  Resampler(Resampler &&r)
       : _state(r._state),
         _converter_type(r._converter_type),
         _channels(r._channels) {
