@@ -7,4 +7,3 @@
    samplerate
    converters
    exceptions
-   lowlevel
