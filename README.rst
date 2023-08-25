@@ -32,8 +32,8 @@ It implements all three `APIs
 * **Callback API**: like Full API, but input samples are provided by a callback
   function
 
-Library calls to `libsamplerate`_ are performed using `CFFI
-<http://cffi.readthedocs.io/en/latest/>`_.
+The `libsamplerate`_ library is statically built together with the python bindings
+using `pybind11 <https://github.com/pybind/pybind11/>`_.
 
 
 Installation
@@ -41,9 +41,8 @@ Installation
 
     $ pip install samplerate
 
-Binaries of `libsamplerate`_ for macOS and Windows (32 and 64 bit) are included
-and used if not present on the system. On Linux systems, you should also install
-`libsamplerate0` (Debian derivatives), `libsamplerate` (Arch), or similar.
+Binary wheels of `libsamplerate`_ for macOS and Windows (64 bit) are available.
+For other systems, a C++ 14 or above compiler is required to build the package.
 
 
 Usage
