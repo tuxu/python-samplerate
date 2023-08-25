@@ -449,14 +449,16 @@ PYBIND11_MODULE(samplerate, m) {
     Parameters
     ----------
     input_data : ndarray
-        Input data. A single channel is provided as a 1D array of `num_frames` length.
-        Input data with several channels is represented as a 2D array of shape
-        (`num_frames`, `num_channels`). For use with `libsamplerate`, `input_data`
+        Input data.
+        Input data with one or more channels is represented as a 2D array of shape
+        (`num_frames`, `num_channels`).
+        A single channel can be provided as a 1D array of `num_frames` length.
+        For use with `libsamplerate`, `input_data`
         is converted to 32-bit float and C (row-major) memory order.
     ratio : float
         Conversion ratio = output sample rate / input sample rate.
     converter_type : ConverterType, str, or int
-        Sample rate converter.
+        Sample rate converter (default: `sinc_best`).
     verbose : bool
         If `True`, print additional information about the conversion.
 
@@ -472,7 +474,7 @@ PYBIND11_MODULE(samplerate, m) {
     conversion ratios.
   )mydelimiter",
                    "input"_a, "ratio"_a,
-                   "converter_type"_a = int(SRC_SINC_BEST_QUALITY),
+                   "converter_type"_a = "sinc_best",
                    "verbose"_a = false);
 
   py::class_<sr::Resampler>(m_converters, "Resampler", R"mydelimiter(
@@ -481,11 +483,11 @@ PYBIND11_MODULE(samplerate, m) {
     Parameters
     ----------
     converter_type : ConverterType, str, or int
-        Sample rate converter.
+        Sample rate converter (default: `sinc_best`).
     num_channels : int
         Number of channels.
   )mydelimiter")
-      .def(py::init<const py::object &, int>(), "converter_type"_a = 0,
+      .def(py::init<const py::object &, int>(), "converter_type"_a = "sinc_best",
            "channels"_a = 1)
       .def(py::init<sr::Resampler>())
       .def("process", &sr::Resampler::process, R"mydelimiter(
@@ -494,10 +496,12 @@ PYBIND11_MODULE(samplerate, m) {
         Parameters
         ----------
         input_data : ndarray
-            Input data. A single channel is provided as a 1D array of `num_frames` length.
-            Input data with several channels is represented as a 2D array of shape
-            (`num_frames`, `num_channels`). For use with `libsamplerate`, `input_data`
-            is converted to 32-bit float and C (row-major) memory order.
+            Input data.
+            Input data with one or more channels is represented as a 2D array of shape
+            (`num_frames`, `num_channels`).
+            A single channel can be provided as a 1D array of `num_frames` length.
+            For use with `libsamplerate`, `input_data` is converted to 32-bit float and
+            C (row-major) memory order.
         ratio : float
             Conversion ratio = output sample rate / input sample rate.
         end_of_input : int
@@ -530,10 +534,11 @@ PYBIND11_MODULE(samplerate, m) {
     ----------
     callback : function
         Function that returns new frames on each call, or `None` otherwise.
-        A single channel is provided as a 1D array of `num_frames` length.
-        Input data with several channels is represented as a 2D array of shape
-        (`num_frames`, `num_channels`). For use with `libsamplerate`, `input_data`
-        is converted to 32-bit float and C (row-major) memory order.
+        Input data with one or more channels is represented as a 2D array of shape
+        (`num_frames`, `num_channels`).
+        A single channel can be provided as a 1D array of `num_frames` length.
+        For use with `libsamplerate`, `input_data` is converted to 32-bit float and
+        C (row-major) memory order.
     ratio : float
         Conversion ratio = output sample rate / input sample rate.
     converter_type : ConverterType, str, or int
@@ -542,7 +547,7 @@ PYBIND11_MODULE(samplerate, m) {
         Number of channels.
     )mydelimiter")
       .def(py::init<const callback_t &, double, const py::object &, int>(),
-           "callback"_a, "ratio"_a, "converter_type"_a = 0, "channels"_a = 1)
+           "callback"_a, "ratio"_a, "converter_type"_a = "sinc_best", "channels"_a = 1)
       .def(py::init<sr::CallbackResampler>())
       .def("read", &sr::CallbackResampler::read, R"mydelimiter(
             Read a number of frames from the resampler.
@@ -564,7 +569,7 @@ PYBIND11_MODULE(samplerate, m) {
       .def("set_starting_ratio", &sr::CallbackResampler::set_starting_ratio,
            "Set the starting conversion ratio for the next `read` call.")
       .def("clone", &sr::CallbackResampler::clone,
-           "Create a copy of the resampler object")
+           "Create a copy of the resampler object.")
       .def("__enter__", &sr::CallbackResampler::__enter__,
            py::return_value_policy::reference_internal)
       .def("__exit__", &sr::CallbackResampler::__exit__)
