@@ -23,7 +23,7 @@ classifiers=[
   "Topic :: Multimedia :: Sound/Audio",
 ]
 keywords=["samplerate", "converter", "signal processing", "audio"]
-license = {text = "BSD-3-Clause"}
+license = {text = "MIT"}
 dependencies = ["numpy"]
 
 [tool.setuptools.dynamic]
