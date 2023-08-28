@@ -119,6 +119,28 @@ def test_callback_with_2x(data, converter_type, ratio=2.0):
     resampler.read(int(ratio) * input_data.shape[0] // 2)
 
 
+def test_Resampler_clone():
+    resampler = samplerate.Resampler("sinc_best", 1)
+    new_resampler = resampler.clone()
+
+
+def test_CallbackResampler_clone(data, converter_type, ratio=2.0):
+    _, input_data = data
+
+    def producer():
+        yield input_data
+        while True:
+            yield None
+
+    callback = lambda p=producer(): next(p)
+    channels = input_data.shape[-1] if input_data.ndim == 2 else 1
+
+    resampler = samplerate.CallbackResampler(callback, ratio, converter_type, channels)
+    resampler.read(int(ratio) * input_data.shape[0])
+
+    new_resampler = resampler.clone()
+
+
 @pytest.mark.parametrize(
     "input_obj,expected_type",
     [

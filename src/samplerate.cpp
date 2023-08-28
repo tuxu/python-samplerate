@@ -245,6 +245,23 @@ class CallbackResampler {
     if (_state == nullptr) error_handler(_err_num);
   }
 
+  // move constructor
+  CallbackResampler(CallbackResampler &&r)
+      : _state(r._state),
+        _callback(r._callback),
+        _current_buffer(std::move(r._current_buffer)),
+        _buffer_ndim(r._buffer_ndim),
+        _ratio(r._ratio),
+        _converter_type(r._converter_type),
+        _channels(r._channels) {
+    r._state = nullptr;
+    r._callback = nullptr;
+    r._buffer_ndim = 0;
+    r._ratio = 0.0;
+    r._converter_type = 0;
+    r._channels = 0;
+  }
+
   ~CallbackResampler() { _destroy(); }
 
   void set_buffer(const np_array_f32 &new_buf) { _current_buffer = new_buf; }
@@ -473,8 +490,7 @@ PYBIND11_MODULE(samplerate, m) {
     `CallbackResampler` will provide better results and allow for variable
     conversion ratios.
   )mydelimiter",
-                   "input"_a, "ratio"_a,
-                   "converter_type"_a = "sinc_best",
+                   "input"_a, "ratio"_a, "converter_type"_a = "sinc_best",
                    "verbose"_a = false);
 
   py::class_<sr::Resampler>(m_converters, "Resampler", R"mydelimiter(
@@ -487,8 +503,8 @@ PYBIND11_MODULE(samplerate, m) {
     num_channels : int
         Number of channels.
   )mydelimiter")
-      .def(py::init<const py::object &, int>(), "converter_type"_a = "sinc_best",
-           "channels"_a = 1)
+      .def(py::init<const py::object &, int>(),
+           "converter_type"_a = "sinc_best", "channels"_a = 1)
       .def(py::init<sr::Resampler>())
       .def("process", &sr::Resampler::process, R"mydelimiter(
         Resample the signal in `input_data`.
@@ -547,7 +563,8 @@ PYBIND11_MODULE(samplerate, m) {
         Number of channels.
     )mydelimiter")
       .def(py::init<const callback_t &, double, const py::object &, int>(),
-           "callback"_a, "ratio"_a, "converter_type"_a = "sinc_best", "channels"_a = 1)
+           "callback"_a, "ratio"_a, "converter_type"_a = "sinc_best",
+           "channels"_a = 1)
       .def(py::init<sr::CallbackResampler>())
       .def("read", &sr::CallbackResampler::read, R"mydelimiter(
             Read a number of frames from the resampler.
