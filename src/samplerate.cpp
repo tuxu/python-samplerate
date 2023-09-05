@@ -36,7 +36,6 @@
 #include <typeinfo>
 #include <vector>
 
-// avoids an error if we compile with raw cmake
 #ifndef VERSION_INFO
 #define VERSION_INFO "nightly"
 #endif
