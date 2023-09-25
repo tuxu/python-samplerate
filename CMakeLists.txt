@@ -28,8 +28,11 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR
     target_compile_options(python-samplerate PRIVATE -std=c++14 -O3 -Wall -Wextra)
 endif()
 
-### stick the libsamlerate version into the compilation
-target_compile_definitions(python-samplerate PUBLIC LIBSAMPLERATE_VERSION="${LIBSAMPLERATE_VERSION}")
+### stick the package and libsamplerate version into the module
+target_compile_definitions(python-samplerate
+    PUBLIC LIBSAMPLERATE_VERSION="${LIBSAMPLERATE_VERSION}"
+    PRIVATE $<$<BOOL:${PACKAGE_VERSION_INFO}>:VERSION_INFO="${PACKAGE_VERSION_INFO}">
+)
 
 ### Final target setup
 set_target_properties(
