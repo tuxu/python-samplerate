@@ -185,8 +185,7 @@ class Resampler {
     // create a shorter view of the array
     if ((size_t)src_data.output_frames_gen < new_size) {
       out_shape[0] = src_data.output_frames_gen;
-      output = py::array_t<float, py::array::c_style>(
-          out_shape, static_cast<float *>(outbuf.ptr));
+      output.resize(out_shape);
     }
 
     return output;
@@ -305,8 +304,7 @@ class CallbackResampler {
     // create a shorter view of the array
     if (output_frames_gen < frames) {
       out_shape[0] = output_frames_gen;
-      output = py::array_t<float, py::array::c_style>(
-          out_shape, static_cast<float *>(outbuf.ptr));
+      output.resize(out_shape);
     }
 
     return output;
@@ -416,8 +414,7 @@ py::array_t<float, py::array::c_style> resample(
   // create a shorter view of the array
   if ((size_t)src_data.output_frames_gen < new_size) {
     out_shape[0] = src_data.output_frames_gen;
-    output = py::array_t<float, py::array::c_style>(
-        out_shape, static_cast<float *>(outbuf.ptr));
+    output.resize(out_shape);
   }
 
   if (verbose) {
