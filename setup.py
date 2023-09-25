@@ -9,7 +9,6 @@ from pathlib import Path
 import re
 import subprocess
 import sys
-from distutils.version import LooseVersion
 from pathlib import Path
 
 import setuptools
@@ -65,7 +64,7 @@ class CMakeBuild(build_ext):
             cmake_args += [item for item in os.environ["CMAKE_ARGS"].split(" ") if item]
 
         # In this example, we pass in the version to C++. You might not need to.
-        # cmake_args += [f"-DEXAMPLE_VERSION_INFO={self.distribution.get_version()}"]
+        cmake_args += [f"-DPACKAGE_VERSION_INFO={self.distribution.get_version()}"]
 
         if self.compiler.compiler_type != "msvc":
             # Using Ninja-build since it a) is available as a wheel and b)

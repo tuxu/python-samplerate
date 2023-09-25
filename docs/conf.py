@@ -18,28 +18,9 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 # import os
-import sys
+# import sys
 
 # sys.path.insert(0, os.path.abspath('.'))
-
-# Mock C modules
-try:
-    from unittest.Mock import MagicMock  # Python >3.3
-except ImportError:
-    try:
-        from mock import MagicMock
-    except ImportError:
-        raise ImportError("No module named mock")
-
-
-class Mock(MagicMock):
-    @classmethod
-    def __getattr__(cls, name):
-        return MagicMock()
-
-
-mock_modules = ["numpy", "samplerate._src"]
-sys.modules.update((mod_name, Mock()) for mod_name in mock_modules)
 
 import samplerate
 

@@ -36,7 +36,6 @@
 #include <typeinfo>
 #include <vector>
 
-// avoids an error if we compile with raw cmake
 #ifndef VERSION_INFO
 #define VERSION_INFO "nightly"
 #endif
@@ -204,7 +203,7 @@ namespace {
 
 long the_callback_func(void *cb_data, float **data);
 
-};  // namespace
+}  // namespace
 
 class CallbackResampler {
  private:
@@ -221,9 +220,8 @@ class CallbackResampler {
  private:
   void _create() {
     int _err_num = 0;
-    _state =
-        src_callback_new(the_callback_func, _converter_type, (int)_channels,
-                         &_err_num, static_cast<void *>(this));
+    _state = src_callback_new(the_callback_func, _converter_type, (int)_channels,
+                              &_err_num, static_cast<void *>(this));
     if (_state == nullptr) error_handler(_err_num);
   }
 
