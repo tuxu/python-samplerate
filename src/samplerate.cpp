@@ -328,8 +328,8 @@ class CallbackResampler {
 
   CallbackResampler clone() const { return CallbackResampler(*this); }
   CallbackResampler &__enter__() { return *this; }
-  void __exit__(const py::object &exc_type, const py::object &exc,
-                const py::object &exc_tb) {
+  void __exit__(const py::object &/*exc_type*/, const py::object &/*exc*/,
+                const py::object &/*exc_tb*/) {
     _destroy();
   }
 };
