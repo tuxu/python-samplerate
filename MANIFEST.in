@@ -1,7 +1,8 @@
 include README.rst
 include LICENSE.rst
 include versioneer.py
-include samplerate/_version.py
-include samplerate/_samplerate_data/*.dylib
-include samplerate/_samplerate_data/*.dll
+include src/*.cpp
+include CMakeLists.txt
+include external/CMakeLists.txt
+include requirements.txt
 include examples/*.py
