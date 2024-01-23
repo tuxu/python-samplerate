@@ -105,6 +105,14 @@ class CMakeBuild(build_ext):
         if "universal2" in self.plat_name:
             cmake_args += ["-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64"]
 
+        # Set MACOSX_DEPLOYMENT_TARGET for macOS builds.
+        if (
+            self.plat_name.startswith("macosx-")
+            and "MACOSX_DEPLOYMENT_TARGET" not in os.environ
+        ):
+            target_version = self.plat_name.split("-")[1]
+            os.environ["MACOSX_DEPLOYMENT_TARGET"] = target_version
+
         # Set CMAKE_BUILD_PARALLEL_LEVEL to control the parallel build level
         # across all generators.
         if "CMAKE_BUILD_PARALLEL_LEVEL" not in os.environ:
