@@ -346,6 +346,8 @@ long the_callback_func(void *cb_data, float **data) {
   CallbackResampler *cb = static_cast<CallbackResampler *>(cb_data);
   int cb_channels = cb->get_channels();
 
+  py::gil_scoped_acquire acquire;
+
   // get the data as a numpy array
   auto input = cb->callback();
 
