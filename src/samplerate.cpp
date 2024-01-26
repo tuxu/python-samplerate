@@ -297,11 +297,12 @@ class CallbackResampler {
     if (_state == nullptr) _create();
 
     // read from the callback
-    size_t output_frames_gen = [&]() {
+    size_t output_frames_gen = 0;
+    {
       py::gil_scoped_release release;
-      return src_callback_read(_state, _ratio, (long)frames,
-                               static_cast<float *>(outbuf.ptr));
-    }();
+      output_frames_gen = src_callback_read(_state, _ratio, (long)frames,
+                                            static_cast<float *>(outbuf.ptr));
+    }
 
     // check error status
     if (output_frames_gen == 0) {
@@ -346,13 +347,14 @@ long the_callback_func(void *cb_data, float **data) {
   CallbackResampler *cb = static_cast<CallbackResampler *>(cb_data);
   int cb_channels = cb->get_channels();
 
-  py::gil_scoped_acquire acquire;
+  py::buffer_info inbuf;
+  {
+    py::gil_scoped_acquire acquire;
 
-  // get the data as a numpy array
-  auto input = cb->callback();
-
-  // accessors for the arrays
-  py::buffer_info inbuf = input.request();
+    // get the data as a numpy array
+    auto input = cb->callback();
+    inbuf = input.request();
+  }
 
   // end of stream is signaled by a None, which is cast to a ndarray with ndim
   // == 0
