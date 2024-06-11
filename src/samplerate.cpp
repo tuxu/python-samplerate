@@ -158,8 +158,14 @@ class Resampler {
     if (channels != _channels || channels == 0)
       throw std::domain_error("Invalid number of channels in input data.");
 
+    // Add a "fudge factor" of 10,000.  This is because the actual number of
+    // output samples generated on the last call when input is terminated can
+    // be more than the expected number of output samples during mid-stream
+    // steady-state processing. (Also, when the stream is started, the number
+    // of output samples generated will generally be zero or otherwise less
+    // than the number of samples in mid-stream processing.)
     const auto new_size =
-        static_cast<size_t>(std::ceil(inbuf.shape[0] * sr_ratio));
+        static_cast<size_t>(std::ceil(inbuf.shape[0] * sr_ratio)) + 10000;
 
     // allocate output array
     std::vector<size_t> out_shape{new_size};
