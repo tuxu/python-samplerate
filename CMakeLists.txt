@@ -10,12 +10,25 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 cmake_policy(SET CMP0094 NEW)
 
-# adds the external dependencies
-add_subdirectory(external)
+
+option(USE_SYSTEM_LIBRARIES "Use system libsamplerate and pybind instead of building separate versions" OFF)
+if(USE_SYSTEM_LIBRARIES)
+	find_package(pybind11 REQUIRED)
+else()
+	# adds the external dependencies
+	add_subdirectory(external)
+endif()
 
 pybind11_add_module(python-samplerate src/samplerate.cpp)
 
-target_include_directories(python-samplerate PRIVATE ./external/libsamplerate/include)
+if(USE_SYSTEM_LIBRARIES)
+	find_package(PkgConfig REQUIRED)
+	pkg_check_modules(SAMPLERATE REQUIRED IMPORTED_TARGET GLOBAL samplerate)
+	target_link_libraries(python-samplerate PUBLIC PkgConfig::SAMPLERATE)
+else()
+	target_include_directories(python-samplerate PRIVATE ./external/libsamplerate/include)
+	target_link_libraries(python-samplerate PUBLIC samplerate)
+endif()
 
 if(MSVC)
     target_compile_options(python-samplerate PRIVATE /EHsc /MP /bigobj)
@@ -43,4 +56,3 @@ set_target_properties(
         LINKER_LANGUAGE C
     )
 
-target_link_libraries(python-samplerate PUBLIC samplerate)
