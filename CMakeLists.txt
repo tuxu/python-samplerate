@@ -1,6 +1,7 @@
 # https://stackoverflow.com/questions/51907755/building-a-pybind11-module-with-cpp-and-cuda-sources-using-cmake
 
 cmake_minimum_required(VERSION 3.15)
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 
 message(STATUS "Found Python prefix ${PYTHON_PREFIX}")
 list(PREPEND CMAKE_PREFIX_PATH "${PYTHON_PREFIX}")
@@ -8,7 +9,7 @@ list(PREPEND CMAKE_PREFIX_PATH "${PYTHON_PREFIX}")
 project(python-samplerate)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-cmake_policy(SET CMP0094 NEW)
+cmake_policy(SET CMP0148 NEW)
 
 # adds the external dependencies
 add_subdirectory(external)
