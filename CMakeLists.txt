@@ -26,7 +26,7 @@ endif()
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR
     CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR
     (CMAKE_CXX_COMPILER_ID MATCHES "Intel" AND NOT WIN32))
-    target_compile_options(python-samplerate PRIVATE -std=c++14 -O3 -Wall -Wextra)
+    target_compile_options(python-samplerate PRIVATE -std=c++14 -O3 -Wall -Wextra -fPIC)
 endif()
 
 ### stick the package and libsamplerate version into the module
