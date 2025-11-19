@@ -16,14 +16,13 @@ classifiers=[
   "Environment :: Console",
   "Intended Audience :: Developers",
   "Intended Audience :: Science/Research",
-  "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent",
   "Programming Language :: Python :: 3",
   "Topic :: Scientific/Engineering",
   "Topic :: Multimedia :: Sound/Audio",
 ]
 keywords=["samplerate", "converter", "signal processing", "audio"]
-license = {text = "MIT"}
+license = "MIT"
 dependencies = ["numpy"]
 
 [tool.setuptools.dynamic]
