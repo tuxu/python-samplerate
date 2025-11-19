@@ -189,16 +189,21 @@ class Resampler {
         sr_ratio       // src_ratio, sampling rate conversion ratio
     };
 
-    error_handler([&]() {
+    // Release GIL for the entire resampling operation
+    int err_code;
+    long output_frames_gen;
+    {
       py::gil_scoped_release release;
-      return src_process(_state, &src_data);
-    }());
+      err_code = src_process(_state, &src_data);
+      output_frames_gen = src_data.output_frames_gen;
+    }
+    error_handler(err_code);
 
     // create a shorter view of the array
-    if ((size_t)src_data.output_frames_gen < new_size) {
-      out_shape[0] = src_data.output_frames_gen;
+    if ((size_t)output_frames_gen < new_size) {
+      out_shape[0] = output_frames_gen;
       output.resize(out_shape);
-    } else if ((size_t)src_data.output_frames_gen >= new_size) {
+    } else if ((size_t)output_frames_gen >= new_size) {
       // This means our fudge factor is too small.
       throw std::runtime_error("Generated more output samples than expected!");
     }
@@ -227,6 +232,7 @@ class CallbackResampler {
   callback_t _callback = nullptr;
   np_array_f32 _current_buffer;
   size_t _buffer_ndim = 0;
+  std::string _callback_error_msg = "";
 
  public:
   double _ratio = 0.0;
@@ -275,6 +281,7 @@ class CallbackResampler {
         _callback(r._callback),
         _current_buffer(std::move(r._current_buffer)),
         _buffer_ndim(r._buffer_ndim),
+        _callback_error_msg(std::move(r._callback_error_msg)),
         _ratio(r._ratio),
         _converter_type(r._converter_type),
         _channels(r._channels) {
@@ -290,6 +297,11 @@ class CallbackResampler {
 
   void set_buffer(const np_array_f32 &new_buf) { _current_buffer = new_buf; }
   size_t get_channels() { return _channels; }
+  void set_callback_error(const std::string &error_msg) {
+    _callback_error_msg = error_msg;
+  }
+  std::string get_callback_error() const { return _callback_error_msg; }
+  void clear_callback_error() { _callback_error_msg = ""; }
 
   np_array_f32 callback(void) {
     auto input = _callback();
@@ -309,17 +321,32 @@ class CallbackResampler {
 
     if (_state == nullptr) _create();
 
-    // read from the callback
+    // clear any previous callback error
+    clear_callback_error();
+
+    // read from the callback - note: GIL is managed by the_callback_func
+    // which acquires it only when calling the Python callback
     size_t output_frames_gen = 0;
+    int err_code = 0;
     {
       py::gil_scoped_release release;
       output_frames_gen = src_callback_read(_state, _ratio, (long)frames,
                                             static_cast<float *>(outbuf.ptr));
+      // Get error code while GIL is released
+      if (output_frames_gen == 0) {
+        err_code = src_error(_state);
+      }
+    }
+
+    // check if callback had an error
+    std::string callback_error = get_callback_error();
+    if (!callback_error.empty()) {
+      throw std::domain_error(callback_error);
     }
 
     // check error status
     if (output_frames_gen == 0) {
-      error_handler(src_error(_state));
+      error_handler(err_code);
     }
 
     // if there is only one channel and the input array had only on dimension
@@ -377,11 +404,17 @@ long the_callback_func(void *cb_data, float **data) {
   int channels = 1;
   if (inbuf.ndim == 2)
     channels = inbuf.shape[1];
-  else if (inbuf.ndim > 2)
-    throw std::domain_error("Input array should have at most 2 dimensions");
+  else if (inbuf.ndim > 2) {
+    // Cannot throw exception in C callback - store error and return 0
+    cb->set_callback_error("Input array should have at most 2 dimensions");
+    return 0;
+  }
 
-  if (channels != cb_channels || channels == 0)
-    throw std::domain_error("Invalid number of channels in input data.");
+  if (channels != cb_channels || channels == 0) {
+    // Cannot throw exception in C callback - store error and return 0
+    cb->set_callback_error("Invalid number of channels in input data.");
+    return 0;
+  }
 
   *data = static_cast<float *>(inbuf.ptr);
 
@@ -409,8 +442,12 @@ py::array_t<float, py::array::c_style> resample(
   if (channels == 0)
     throw std::domain_error("Invalid number of channels (0) in input data.");
 
+  // Add buffer space to match Resampler.process() behavior with end_of_input=True
+  // src_simple internally behaves like end_of_input=True, so it may generate
+  // extra samples from buffer flushing, especially for certain converters
   const auto new_size =
-      static_cast<size_t>(std::ceil(inbuf.shape[0] * sr_ratio));
+      static_cast<size_t>(std::ceil(inbuf.shape[0] * sr_ratio))
+      + END_OF_INPUT_EXTRA_OUTPUT_FRAMES;
 
   // allocate output array
   std::vector<size_t> out_shape{new_size};
@@ -430,21 +467,31 @@ py::array_t<float, py::array::c_style> resample(
       sr_ratio  // src_ratio, sampling rate conversion ratio
   };
 
-  error_handler([&]() {
+  // Release GIL for the entire resampling operation
+  int err_code;
+  long output_frames_gen;
+  long input_frames_used;
+  {
     py::gil_scoped_release release;
-    return src_simple(&src_data, converter_type_int, channels);
-  }());
+    err_code = src_simple(&src_data, converter_type_int, channels);
+    output_frames_gen = src_data.output_frames_gen;
+    input_frames_used = src_data.input_frames_used;
+  }
+  error_handler(err_code);
 
   // create a shorter view of the array
-  if ((size_t)src_data.output_frames_gen < new_size) {
-    out_shape[0] = src_data.output_frames_gen;
+  if ((size_t)output_frames_gen < new_size) {
+    out_shape[0] = output_frames_gen;
     output.resize(out_shape);
+  } else if ((size_t)output_frames_gen >= new_size) {
+    // This means our fudge factor is too small.
+    throw std::runtime_error("Generated more output samples than expected!");
   }
 
   if (verbose) {
     py::print("samplerate info:");
-    py::print(src_data.input_frames_used, " input frames used");
-    py::print(src_data.output_frames_gen, " output frames generated");
+    py::print(input_frames_used, " input frames used");
+    py::print(output_frames_gen, " output frames generated");
   }
 
   return output;
