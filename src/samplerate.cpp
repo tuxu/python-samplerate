@@ -40,6 +40,9 @@
 #define VERSION_INFO "nightly"
 #endif
 
+// This value was empirically and somewhat arbitrarily chosen; increase it for further safety.
+#define END_OF_INPUT_EXTRA_OUTPUT_FRAMES 10000
+
 namespace py = pybind11;
 using namespace pybind11::literals;
 
@@ -158,8 +161,15 @@ class Resampler {
     if (channels != _channels || channels == 0)
       throw std::domain_error("Invalid number of channels in input data.");
 
+    // Add a "fudge factor" to the size. This is because the actual number of
+    // output samples generated on the last call when input is terminated can
+    // be more than the expected number of output samples during mid-stream
+    // steady-state processing. (Also, when the stream is started, the number
+    // of output samples generated will generally be zero or otherwise less
+    // than the number of samples in mid-stream processing.)
     const auto new_size =
-        static_cast<size_t>(std::ceil(inbuf.shape[0] * sr_ratio));
+        static_cast<size_t>(std::ceil(inbuf.shape[0] * sr_ratio))
+        + END_OF_INPUT_EXTRA_OUTPUT_FRAMES;
 
     // allocate output array
     std::vector<size_t> out_shape{new_size};
@@ -185,6 +195,9 @@ class Resampler {
     if ((size_t)src_data.output_frames_gen < new_size) {
       out_shape[0] = src_data.output_frames_gen;
       output.resize(out_shape);
+    } else if ((size_t)src_data.output_frames_gen >= new_size) {
+      // This means our fudge factor is too small.
+      throw std::runtime_error("Generated more output samples than expected!");
     }
 
     return output;
