@@ -48,7 +48,7 @@ def test_simple(data, converter_type, ratio=2.0):
 def test_process(data, converter_type, ratio=2.0):
     num_channels, input_data = data
     src = samplerate.Resampler(converter_type, num_channels)
-    src.process(input_data, ratio)
+    src.process(input_data.copy(), ratio)
 
 
 def test_match(data, converter_type, ratio=2.0):
