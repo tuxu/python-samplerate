@@ -430,7 +430,7 @@ py::array_t<float, py::array::c_style> resample(
 
 namespace sr = samplerate;
 
-PYBIND11_MODULE(samplerate, m) {
+PYBIND11_MODULE(samplerate, m, py::mod_gil_not_used()) {
   m.doc() =
       "A simple python wrapper library around libsamplerate";  // optional
                                                                // module
