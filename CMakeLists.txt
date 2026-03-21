@@ -3,13 +3,10 @@
 cmake_minimum_required(VERSION 3.15)
 set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 
-message(STATUS "Found Python prefix ${PYTHON_PREFIX}")
-list(PREPEND CMAKE_PREFIX_PATH "${PYTHON_PREFIX}")
-
 project(python-samplerate)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-cmake_policy(SET CMP0148 NEW)
+set(PYBIND11_FINDPYTHON ON)
 
 # adds the external dependencies
 add_subdirectory(external)
