@@ -183,11 +183,11 @@ class Resampler {
 
     // create a shorter view of the array
     if ((size_t)src_data.output_frames_gen < new_size) {
-      out_shape[0] = src_data.output_frames_gen;
-      output.resize(out_shape);
+        return output[py::slice(0, src_data.output_frames_gen, 1)]
+            .cast<py::array_t<float, py::array::c_style>>();
+    } else {
+        return output;
     }
-
-    return output;
   }
 
   void set_ratio(double new_ratio) {
@@ -312,11 +312,11 @@ class CallbackResampler {
 
     // create a shorter view of the array
     if (output_frames_gen < frames) {
-      out_shape[0] = output_frames_gen;
-      output.resize(out_shape);
+        return output[py::slice(0, output_frames_gen, 1)]
+            .cast<py::array_t<float, py::array::c_style>>();
+    } else {
+        return output;
     }
-
-    return output;
   }
 
   void set_starting_ratio(double new_ratio) {
@@ -413,8 +413,8 @@ py::array_t<float, py::array::c_style> resample(
 
   // create a shorter view of the array
   if ((size_t)src_data.output_frames_gen < new_size) {
-    out_shape[0] = src_data.output_frames_gen;
-    output.resize(out_shape);
+      output = output[py::slice(0, src_data.output_frames_gen, 1)]
+                   .cast<py::array_t<float, py::array::c_style>>();
   }
 
   if (verbose) {
