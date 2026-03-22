@@ -108,7 +108,7 @@ jobs:
         merge-multiple: true
     - name: Validate wheels
       run: |
-        pip install twine
+        pip install --upgrade twine packaging
         twine check dist/*
     - name: Publish to PyPI
       env:
@@ -128,7 +128,7 @@ jobs:
         merge-multiple: true
     - name: Validate wheels
       run: |
-        pip install twine
+        pip install --upgrade twine packaging
         twine check dist/*
     - name: Publish to PyPI Test
       env:
