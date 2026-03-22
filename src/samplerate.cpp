@@ -183,11 +183,13 @@ class Resampler {
 
     // create a shorter view of the array
     if ((size_t)src_data.output_frames_gen < new_size) {
-        return output[py::slice(0, src_data.output_frames_gen, 1)]
-            .cast<py::array_t<float, py::array::c_style>>();
-    } else {
-        return output;
+      out_shape[0] = src_data.output_frames_gen;
+      return py::array_t<float, py::array::c_style>(
+        out_shape, outbuf.strides, static_cast<float *>(outbuf.ptr),
+        output);
     }
+
+    return output;
   }
 
   void set_ratio(double new_ratio) {
@@ -312,11 +314,14 @@ class CallbackResampler {
 
     // create a shorter view of the array
     if (output_frames_gen < frames) {
-        return output[py::slice(0, output_frames_gen, 1)]
-            .cast<py::array_t<float, py::array::c_style>>();
-    } else {
-        return output;
+      out_shape[0] = output_frames_gen;
+      auto strides = std::vector<ssize_t>(output.strides(),
+                                          output.strides() + output.ndim());
+      return py::array_t<float, py::array::c_style>(
+        out_shape, strides, static_cast<float *>(outbuf.ptr), output);
     }
+
+    return output;
   }
 
   void set_starting_ratio(double new_ratio) {
@@ -413,8 +418,10 @@ py::array_t<float, py::array::c_style> resample(
 
   // create a shorter view of the array
   if ((size_t)src_data.output_frames_gen < new_size) {
-      output = output[py::slice(0, src_data.output_frames_gen, 1)]
-                   .cast<py::array_t<float, py::array::c_style>>();
+    out_shape[0] = src_data.output_frames_gen;
+    auto base = output;
+    output = py::array_t<float, py::array::c_style>(
+      out_shape, outbuf.strides, static_cast<float *>(outbuf.ptr), base);
   }
 
   if (verbose) {
@@ -430,7 +437,7 @@ py::array_t<float, py::array::c_style> resample(
 
 namespace sr = samplerate;
 
-PYBIND11_MODULE(samplerate, m, py::mod_gil_not_used()) {
+PYBIND11_MODULE(samplerate, m) {
   m.doc() =
       "A simple python wrapper library around libsamplerate";  // optional
                                                                // module
