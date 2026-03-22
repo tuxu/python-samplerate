@@ -41,8 +41,9 @@ Installation
 
     $ pip install samplerate
 
-Binary wheels of `libsamplerate`_ for macOS and Windows (64 bit) are available.
-For other systems, a C++ 14 or above compiler is required to build the package.
+Binary wheels of `libsamplerate`_ are available for macOS (x86_64, arm64), Linux
+(x86_64, aarch64), and Windows (x86_64). Building from source on other platforms
+requires a C++14 or later compiler.
 
 
 Usage
