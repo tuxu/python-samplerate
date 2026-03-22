@@ -315,8 +315,8 @@ class CallbackResampler {
     // create a shorter view of the array
     if (output_frames_gen < frames) {
       out_shape[0] = output_frames_gen;
-      auto strides = std::vector<ssize_t>(output.strides(),
-                                          output.strides() + output.ndim());
+      auto strides = std::vector<py::ssize_t>(output.strides(),
+                                              output.strides() + output.ndim());
       return py::array_t<float, py::array::c_style>(
         out_shape, strides, static_cast<float *>(outbuf.ptr), output);
     }
